@@ -1,0 +1,229 @@
+﻿<Window x:Class="Graph_Constructor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:converters="clr-namespace:Graph_Constructor.Convertes"
+        mc:Ignorable="d"
+        Title="Graph Constructor" Height="500" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="800">
+    <Window.Resources>
+        <converters:IsGreaterThanZero x:Key="IsGreaterThanZero"/>
+        <DataTemplate x:Key="MatrixCell">
+            <xctk:IntegerUpDown x:Name="IntegerUpDown" AllowTextInput="False" AllowSpin="False" FontFamily="Arial" FontSize="15" Value="{Binding Value}"  TextAlignment="Center" Margin="1" ShowButtonSpinner="False" Height="25.3" Width="25.3" Maximum="1" Minimum="0">
+                <xctk:IntegerUpDown.Style>
+                    <Style TargetType="xctk:IntegerUpDown">
+                        <Style.Triggers>
+                            <Trigger Property="Value" Value="1">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontSize" Value="16"/>
+                            </Trigger>
+                            <Trigger Property="Value" Value="0">
+                                <Setter Property="FontWeight" Value="Light"/>
+                                <Setter Property="FontSize" Value="15"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </xctk:IntegerUpDown.Style>
+            </xctk:IntegerUpDown>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="HeaderCell">
+            <TextBlock Text="{Binding Id}" FontSize="18" FontWeight="Bold" FontFamily="Italic"  Height="27.5" Width="27.5" TextAlignment="Center" />
+        </DataTemplate>
+        
+        <ItemsPanelTemplate x:Key="HorizontalHeader">
+            <StackPanel Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
+        
+        <ItemsPanelTemplate x:Key="VeriticalHeader">
+            <StackPanel Orientation="Vertical"/>
+        </ItemsPanelTemplate>
+        
+        <DataTemplate x:Key="Matrix">
+            <ItemsControl ItemsSource="{Binding}" ItemTemplate="{DynamicResource MatrixCell}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DataTemplate>
+        <DataTemplate x:Key="List">
+            <ItemsControl ItemsSource="{Binding}" ItemTemplate="{DynamicResource MatrixCell}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal">
+                        </StackPanel>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DataTemplate>
+
+
+        <Style x:Key="iToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="IsChecked" Value="False"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Name="border" Background="#ecf5f9" Padding="3 5">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Name="ico" Data="{TemplateBinding Content}" Margin="3 0 3 0 " Fill="#1f54a1" Height="15" Width="15" Stretch="Uniform"/>
+                                <TextBlock Name="title" FontSize="14" Text="{TemplateBinding Tag}" FontFamily="Arial"  VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="#bbc2c5"/>
+                                <Setter Property="BorderBrush" Value="#ecf5f9"/>
+                            </Trigger>
+                            
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="#bbc2c5"/>
+                                <Setter Property="BorderBrush" Value="#ecf5f9"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ico" Property="Fill" Value="#1d94cf"/>
+                                <!--<Setter TargetName="title" Property="Foreground" Value="White"/>-->
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Name="border" Background="#ecf5f9" BorderBrush="#bbc2c5" BorderThickness="2" >
+                            <StackPanel Orientation="Horizontal">
+                                <Path Name="ico" Data="{TemplateBinding Content}" Margin="3 0 3 0 " Fill="#1f54a1" Height="15" Width="15" Stretch="Uniform"/>
+                                <TextBlock Name="title" FontSize="14" Text="{TemplateBinding Tag}" FontFamily="Arial"  VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="#bbc2c5"/>
+                            </Trigger>
+                            
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ico" Property="Fill" Value="#1d94cf"/>
+                                <!--<Setter TargetName="title" Property="Foreground" Value="White"/>-->
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Canvas">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=ShowGrid, Path=IsChecked}" Value="True">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <DrawingBrush TileMode="Tile" Viewport="20,20,20,20" ViewportUnits="Absolute">
+                                <DrawingBrush.Drawing>
+                                    <GeometryDrawing>
+                                        <GeometryDrawing.Geometry>
+                                            <RectangleGeometry Rect="0,0,100,100"/>
+                                        </GeometryDrawing.Geometry>
+                                        <GeometryDrawing.Pen>
+                                            <Pen Brush="Gray" Thickness="2"/>
+                                        </GeometryDrawing.Pen>
+                                    </GeometryDrawing>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding ElementName=ShowGrid, Path=IsChecked}" Value="False">
+                    <Setter Property="Background" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
+            </Style>
+        <PathGeometry x:Key="Move" Figures="M13,6V11H18V7.75L22.25,12L18,16.25V13H13V18H16.25L12,22.25L7.75,18H11V13H6V16.25L1.75,12L6,7.75V11H11V6H7.75L12,1.75L16.25,6H13Z"/>
+        <PathGeometry x:Key="Grid" Figures="M10,4V8H14V4H10M16,4V8H20V4H16M16,10V14H20V10H16M16,16V20H20V16H16M14,20V16H10V20H14M8,20V16H4V20H8M8,14V10H4V14H8M8,8V4H4V8H8M10,14H14V10H10V14M4,2H20A2,2 0 0,1 22,4V20A2,2 0 0,1 20,22H4C2.92,22 2,21.1 2,20V4A2,2 0 0,1 4,2Z"/>
+        <PathGeometry x:Key="Run" Figures="M13,2.05V4.05C17.39,4.59 20.5,8.58 19.96,12.97C19.5,16.61 16.64,19.5 13,19.93V21.93C18.5,21.38 22.5,16.5 21.95,11C21.5,6.25 17.73,2.5 13,2.03V2.05M5.67,19.74C7.18,21 9.04,21.79 11,22V20C9.58,19.82 8.23,19.25 7.1,18.37L5.67,19.74M7.1,5.74C8.22,4.84 9.57,4.26 11,4.06V2.06C9.05,2.25 7.19,3 5.67,4.26L7.1,5.74M5.69,7.1L4.26,5.67C3,7.19 2.25,9.04 2.05,11H4.05C4.24,9.58 4.8,8.23 5.69,7.1M4.06,13H2.06C2.26,14.96 3.03,16.81 4.27,18.33L5.69,16.9C4.81,15.77 4.24,14.42 4.06,13M10,16.5L16,12L10,7.5V16.5Z"/>
+        <PathGeometry x:Key="Erase" Figures="M 500 0C 224 0 0 224 0 500C 0 776 224 1000 500 1000C 776 1000 1000 776 1000 500C 1000 224 776 0 500 0C 500 0 500 0 500 0 M 667 202C 667 202 844 379 844 379C 878 413 878 469 844 503C 844 503 561 786 561 786C 554 793 545 797 535 797C 535 797 323 797 323 797C 313 797 303 793 296 786C 296 786 190 680 190 680C 156 646 156 590 190 556C 190 556 544 202 544 202C 561 186 583 177 605 177C 628 177 650 186 667 202C 667 202 667 202 667 202M 243 609C 238 614 238 621 243 627C 243 627 338 722 338 722C 338 722 519 722 519 722C 519 722 615 628 615 628C 615 628 420 434 420 434C 420 434 243 609 243 609"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Grid.ColumnSpan="2" Margin="20 5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="0 5 0 0" VerticalAlignment="Center">
+                <xctk:WatermarkTextBox Height="25" x:Name="StartVertex" Watermark="Enter start" TextAlignment="Center" FontSize="12" Width="65"/>
+                <Button x:Name="RunAlgorithm" Click="RunAlgorithm_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Run Algorithm " Content="{DynamicResource Run}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"  Grid.Row="1" VerticalAlignment="Top">
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Content="DFS"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Content="BFS"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunFord" Content="Ford"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBellmanCalaba" Content="Bellman-Calaba"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDjikstra" Content="Djikstra"/>
+            </StackPanel>
+        </Grid>
+        <Grid Margin="20 0" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition MinHeight="250"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock FontSize="12" FontFamily="Consolas italic" Margin="2 0 0 0" Text="Sandbox"/>
+            <Border BorderThickness="1" Background="White" Grid.Row="1" CornerRadius="5 5 0 0" BorderBrush="Black">
+                <Canvas x:Name="DrawingArea"  Margin="1"  MouseRightButtonDown="DeleteGraphElement_Click" MouseMove="MoveVertexOnCanvas" MouseLeftButtonDown="DrawGraphElement_Click" ClipToBounds="True"/>
+            </Border>
+            <StackPanel Orientation="Horizontal" Grid.Row="2">
+                <ToggleButton x:Name="ShowGrid" Style="{StaticResource iToggleButtonStyle}" IsChecked="True" Tag="Show Grid " Content="{DynamicResource Grid}"/>
+                <ToggleButton Name="MoveMode" Style="{StaticResource iToggleButtonStyle}" Tag="Move vertices " Content="{DynamicResource Move}"/>
+                <Button x:Name="ClearCanvas" Click="ClearCanvas_Click" Style="{StaticResource ButtonStyle}" Tag="Clear " Content="{DynamicResource Erase}"/>
+            </StackPanel>
+        </Grid>
+        <TabControl Grid.Row="1" Grid.Column="1" Margin="0 0 20 25">
+            <TabItem Header="Adjacency matrix" FontFamily="Consolas italic" IsSelected="True">
+                <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+                    <Grid  Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <ItemsControl Grid.Column="1" x:Name="MatrixHorizontalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource HorizontalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                        <ItemsControl Grid.Row="1" Grid.Column="1" x:Name="AdjacencyMatrix" ItemsSource="{Binding AdjMatrix}" ItemTemplate="{DynamicResource Matrix}"/>
+                        <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VeriticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Adjacency list" FontFamily="Consolas italic">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <ItemsControl x:Name="ListVerticalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VeriticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                    <ItemsControl Grid.Column="1" x:Name="AdjacencyList" ItemsSource="{Binding AdjList}" ItemTemplate="{DynamicResource List}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Logs" FontFamily="Consolas italic">
+                <TextBlock x:Name="AlgoLogs" FontSize="15" FontFamily="Consolas" Margin="5"/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
