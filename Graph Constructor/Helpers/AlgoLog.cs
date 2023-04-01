@@ -15,7 +15,7 @@ namespace Graph_Constructor.Helpers
 
         public override string ToString()
         {
-            return $"{Title}:\n{Detail}\n";
+            return $"{Title}{Detail}\n";
         }
     }
 }

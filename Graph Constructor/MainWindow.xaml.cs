@@ -276,23 +276,30 @@ namespace Graph_Constructor
             if (RunDFS.IsChecked == true)
             {
                 DFS dfs = new DFS(_graph, DrawingArea, _graph.GetVertexById(start));
-                AlgoLog log = new AlgoLog($"DFS from {start}", dfs.Path);
+                AlgoLog log = new AlgoLog($"DFS from {start}\n", dfs.Path);
                 AlgoLogs.Text += log.ToString();
                 _wasAlgoRunned = true;
             }
             if (RunBFS.IsChecked == true)
             {
                 BFS bfs = new BFS(_graph, DrawingArea, _graph.GetVertexById(start));
-                AlgoLog log = new AlgoLog($"BFS from {start}", bfs.Path);
+                AlgoLog log = new AlgoLog($"BFS from {start}\n", bfs.Path);
                 AlgoLogs.Text += log.ToString();
                 _wasAlgoRunned = true;
             }
 
             if (RunFord.IsChecked == true)
             {
-                Ford ford = new Ford(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start));
-                AlgoLog log = new AlgoLog($"BFS from {start}", ford.Tags.Select(tag => tag.Cost).ToList());
-                AlgoLogs.Text += log.ToString();
+                Vertex begin = _graph.GetVertexById(1);
+                Vertex target = _graph.GetVertexById(start);
+                Ford ford = new Ford(_graph, DrawingArea, begin, target);
+                AlgoLogs.Text = $"The min path length from {begin.Id} to {target.Id} is {ford.Tags[target].Cost}\n";
+                AlgoLogs.Text += $"All paths are:\n";
+                foreach (var path in ford.Paths)
+                {
+                    AlgoLog log = new AlgoLog(string.Empty, path.Select(vertex => vertex.Id).ToList());
+                    AlgoLogs.Text += log.ToString();
+                }
                 _wasAlgoRunned = true;
             }
         }
