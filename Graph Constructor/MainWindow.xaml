@@ -8,38 +8,43 @@
         mc:Ignorable="d"
         Title="Graph Constructor" Height="500" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="800">
     <Window.Resources>
-        <converters:IsGreaterThanZero x:Key="IsGreaterThanZero"/>
+        <converters:MatrixCellValidator x:Key="MatrixCellValidator"/>
         <DataTemplate x:Key="MatrixCell">
-            <xctk:IntegerUpDown x:Name="IntegerUpDown" AllowTextInput="False" AllowSpin="False" FontFamily="Arial" FontSize="15" Value="{Binding Value}"  TextAlignment="Center" Margin="1" ShowButtonSpinner="False" Height="25.3" Width="25.3" Maximum="1" Minimum="0">
-                <xctk:IntegerUpDown.Style>
-                    <Style TargetType="xctk:IntegerUpDown">
+            <TextBox x:Name="Cell" Tag="{Binding CellId}" PreviewTextInput="Cell_PreviewTextInput" LostFocus="Cell_LostFocus" TextChanged="Cell_TextChanged" GotFocus="Cell_GotFocus" IsMouseCaptureWithinChanged="Cell_IsMouseCaptureWithinChanged" GotMouseCapture="Cell_GotMouseCapture" FontFamily="Arial" FontSize="15" Text="{Binding Value, Converter = {StaticResource MatrixCellValidator}, Mode =TwoWay, UpdateSourceTrigger = Explicit}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextAlignment="Center" Margin="1" Height="25.3" Width="25.3">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
                         <Style.Triggers>
-                            <Trigger Property="Value" Value="1">
+                            <!--<MultiTrigger >
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Text" Value="1"/>
+                                </MultiTrigger.Conditions>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="FontSize" Value="16"/>
-                            </Trigger>
+                            </MultiTrigger>
                             <Trigger Property="Value" Value="0">
                                 <Setter Property="FontWeight" Value="Light"/>
                                 <Setter Property="FontSize" Value="15"/>
-                            </Trigger>
+                            </Trigger>-->
+                            <DataTrigger Binding="{Binding Value}" Value="-1">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                            <!--<Trigger Property="Text" Value="∞">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </Trigger>-->
                         </Style.Triggers>
                     </Style>
-                </xctk:IntegerUpDown.Style>
-            </xctk:IntegerUpDown>
+                </TextBox.Style>
+            </TextBox>
         </DataTemplate>
-        
         <DataTemplate x:Key="HeaderCell">
             <TextBlock Text="{Binding Id}" FontSize="18" FontWeight="Bold" FontFamily="Italic"  Height="27.5" Width="27.5" TextAlignment="Center" />
         </DataTemplate>
-        
         <ItemsPanelTemplate x:Key="HorizontalHeader">
             <StackPanel Orientation="Horizontal"/>
         </ItemsPanelTemplate>
-        
         <ItemsPanelTemplate x:Key="VeriticalHeader">
             <StackPanel Orientation="Vertical"/>
         </ItemsPanelTemplate>
-        
         <DataTemplate x:Key="Matrix">
             <ItemsControl ItemsSource="{Binding}" ItemTemplate="{DynamicResource MatrixCell}">
                 <ItemsControl.ItemsPanel>
@@ -59,8 +64,6 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
         </DataTemplate>
-
-
         <Style x:Key="iToggleButtonStyle" TargetType="{x:Type ToggleButton}">
             <Setter Property="IsChecked" Value="False"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -146,12 +149,15 @@
                 </DataTrigger>
             </Style.Triggers>
             </Style>
+        
         <PathGeometry x:Key="Move" Figures="M13,6V11H18V7.75L22.25,12L18,16.25V13H13V18H16.25L12,22.25L7.75,18H11V13H6V16.25L1.75,12L6,7.75V11H11V6H7.75L12,1.75L16.25,6H13Z"/>
         <PathGeometry x:Key="Grid" Figures="M10,4V8H14V4H10M16,4V8H20V4H16M16,10V14H20V10H16M16,16V20H20V16H16M14,20V16H10V20H14M8,20V16H4V20H8M8,14V10H4V14H8M8,8V4H4V8H8M10,14H14V10H10V14M4,2H20A2,2 0 0,1 22,4V20A2,2 0 0,1 20,22H4C2.92,22 2,21.1 2,20V4A2,2 0 0,1 4,2Z"/>
         <PathGeometry x:Key="Run" Figures="M13,2.05V4.05C17.39,4.59 20.5,8.58 19.96,12.97C19.5,16.61 16.64,19.5 13,19.93V21.93C18.5,21.38 22.5,16.5 21.95,11C21.5,6.25 17.73,2.5 13,2.03V2.05M5.67,19.74C7.18,21 9.04,21.79 11,22V20C9.58,19.82 8.23,19.25 7.1,18.37L5.67,19.74M7.1,5.74C8.22,4.84 9.57,4.26 11,4.06V2.06C9.05,2.25 7.19,3 5.67,4.26L7.1,5.74M5.69,7.1L4.26,5.67C3,7.19 2.25,9.04 2.05,11H4.05C4.24,9.58 4.8,8.23 5.69,7.1M4.06,13H2.06C2.26,14.96 3.03,16.81 4.27,18.33L5.69,16.9C4.81,15.77 4.24,14.42 4.06,13M10,16.5L16,12L10,7.5V16.5Z"/>
         <PathGeometry x:Key="Erase" Figures="M 500 0C 224 0 0 224 0 500C 0 776 224 1000 500 1000C 776 1000 1000 776 1000 500C 1000 224 776 0 500 0C 500 0 500 0 500 0 M 667 202C 667 202 844 379 844 379C 878 413 878 469 844 503C 844 503 561 786 561 786C 554 793 545 797 535 797C 535 797 323 797 323 797C 313 797 303 793 296 786C 296 786 190 680 190 680C 156 646 156 590 190 556C 190 556 544 202 544 202C 561 186 583 177 605 177C 628 177 650 186 667 202C 667 202 667 202 667 202M 243 609C 238 614 238 621 243 627C 243 627 338 722 338 722C 338 722 519 722 519 722C 519 722 615 628 615 628C 615 628 420 434 420 434C 420 434 243 609 243 609"/>
+        <PathGeometry x:Key="Weighted" Figures="M12,3A4,4 0 0,1 16,7C16,7.73 15.81,8.41 15.46,9H18C18.95,9 19.75,9.67 19.95,10.56C21.96,18.57 22,18.78 22,19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19C2,18.78 2.04,18.57 4.05,10.56C4.25,9.67 5.05,9 6,9H8.54C8.19,8.41 8,7.73 8,7A4,4 0 0,1 12,3M12,5A2,2 0 0,0 10,7A2,2 0 0,0 12,9A2,2 0 0,0 14,7A2,2 0 0,0 12,5M6,11V19H8V16.5L9,17.5V19H11V17L9,15L11,13V11H9V12.5L8,13.5V11H6M15,11C13.89,11 13,11.89 13,13V17C13,18.11 13.89,19 15,19H18V14H16V17H15V13H18V11H15Z"/>
+        <PathGeometry x:Key="Directed" Figures="M14,14.5V12H10V15H8V11A1,1 0 0,1 9,10H14V7.5L17.5,11M21.71,11.29L12.71,2.29H12.7C12.31,1.9 11.68,1.9 11.29,2.29L2.29,11.29C1.9,11.68 1.9,12.32 2.29,12.71L11.29,21.71C11.68,22.09 12.31,22.1 12.71,21.71L21.71,12.71C22.1,12.32 22.1,11.68 21.71,11.29Z"/>
     </Window.Resources>
-    <Grid>
+    <Grid  Name="grid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
@@ -184,9 +190,21 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock FontSize="12" FontFamily="Consolas italic" Margin="2 0 0 0" Text="Sandbox"/>
-            <Border BorderThickness="1" Background="White" Grid.Row="1" CornerRadius="5 5 0 0" BorderBrush="Black">
-                <Canvas x:Name="DrawingArea"  Margin="1"  MouseRightButtonDown="DeleteGraphElement_Click" MouseMove="MoveVertexOnCanvas" MouseLeftButtonDown="DrawGraphElement_Click" ClipToBounds="True"/>
+            <Grid Grid.Row="1">
+                <Grid Panel.ZIndex="99" Name="GraphTypePopup">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Select graph type" Margin="2" FontSize="16" FontFamily="Verdana" HorizontalAlignment="Center" />
+                        <Button x:Name="WeightedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Weighted Graph " Content="{DynamicResource Directed}"/>
+                        <Button x:Name="DirectedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Directed Graph " Content="{DynamicResource Weighted}"/>
+                    </StackPanel>
+                </Grid>
+                <Border BorderThickness="1" Name="GraphTypePopupBlurEffect" Background="White" CornerRadius="5 5 0 0" BorderBrush="Black">
+                    <Border.Effect>
+                        <BlurEffect Radius="5" KernelType="Gaussian"/>
+                    </Border.Effect>
+                <Canvas x:Name="DrawingArea" IsEnabled="False" Margin="1"  MouseRightButtonDown="DeleteGraphElement_Click" MouseMove="MoveVertexOnCanvas" MouseLeftButtonDown="DrawGraphElement_Click" ClipToBounds="True"/>
             </Border>
+                </Grid>
             <StackPanel Orientation="Horizontal" Grid.Row="2">
                 <ToggleButton x:Name="ShowGrid" Style="{StaticResource iToggleButtonStyle}" IsChecked="True" Tag="Show Grid " Content="{DynamicResource Grid}"/>
                 <ToggleButton Name="MoveMode" Style="{StaticResource iToggleButtonStyle}" Tag="Move vertices " Content="{DynamicResource Move}"/>
@@ -206,7 +224,7 @@
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
                         <ItemsControl Grid.Column="1" x:Name="MatrixHorizontalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource HorizontalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
-                        <ItemsControl Grid.Row="1" Grid.Column="1" x:Name="AdjacencyMatrix" ItemsSource="{Binding AdjMatrix}" ItemTemplate="{DynamicResource Matrix}"/>
+                        <ItemsControl Grid.Row="1" Grid.Column="1" x:Name="AdjacencyMatrix" ItemsSource="{Binding Matrix}" ItemTemplate="{DynamicResource Matrix}"/>
                         <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VeriticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                     </Grid>
                 </ScrollViewer>

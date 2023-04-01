@@ -6,14 +6,18 @@ namespace Graph_Constructor.Models
 {
     public class Graph
     {
-        private IDictionary<Vertex, ICollection<Edge>> _adjacencyList;
-
-        public Graph()
+        IDictionary<Vertex, List<Edge>> _adjacencyList;
+        bool _isWeighted;
+        public Graph(bool isWeighted)
         {
-            _adjacencyList = new Dictionary<Vertex, ICollection<Edge>>();
+            _adjacencyList = new Dictionary<Vertex, List<Edge>>();
+            _isWeighted = isWeighted;
         }
 
-        public IDictionary<Vertex, ICollection<Edge>> AdjacencyList { get { return _adjacencyList; } }
+        public IDictionary<Vertex, List<Edge>> AdjacencyList { get { return _adjacencyList; } }
+
+        public bool IsWeighted { get => _isWeighted; }
+
         public void AddVertex(Vertex vertex)
         {
             Validate(() => !_adjacencyList.ContainsKey(vertex));
@@ -23,7 +27,7 @@ namespace Graph_Constructor.Models
         public void RemoveVertex(Vertex vertex)
         {
             Validate(() => _adjacencyList.ContainsKey(vertex));
-            List<Edge> edgesToRemove= new List<Edge>();
+            List<Edge> edgesToRemove = new List<Edge>();
             foreach (var vert in AdjacencyList)
                 foreach (var edge in vert.Value)
                     if (edge.To == vertex)
@@ -63,9 +67,24 @@ namespace Graph_Constructor.Models
             Validate(() => _adjacencyList.ContainsKey(to));
 
             var srcEdge = new Edge(from, to);
-            //var destEdge = new Edge(to, from, cost);
             _adjacencyList[from].Add(srcEdge);
-            //_adjacencyList[to].Add(destEdge);
+        }
+
+        public void AddEdge(Vertex from, Vertex to, int cost)
+        {
+            Validate(() => _adjacencyList.ContainsKey(from));
+            Validate(() => _adjacencyList.ContainsKey(to));
+
+            var srcEdge = new Edge(from, to, cost);
+            _adjacencyList[from].Add(srcEdge);
+        }
+        public void UpdateEdgeWeight(Vertex from, Vertex to, int cost)
+        {
+            Validate(() => _adjacencyList.ContainsKey(from));
+            Validate(() => _adjacencyList.ContainsKey(to));
+
+            Edge edge = GetEdge(from, to);
+            edge.Cost = cost;
         }
 
         public void RemoveEdge(Vertex from, Vertex to)
@@ -99,8 +118,8 @@ namespace Graph_Constructor.Models
                     result.Add(
                         new Edge(
                             vertex.Key,
-                            adjacent.To));
-
+                            adjacent.To,
+                            adjacent.Cost));
             return result;
         }
 

@@ -123,9 +123,9 @@ namespace Graph_Constructor.Helpers
                 return true;
             }
             return false;
-            
+
         }
-        
+
         public static bool CheckIfEdgeExist(Canvas canvas, Grid startVertex, Grid endVertex)
         {
             string name = $"{GetTextFromVertex(startVertex)} {GetTextFromVertex(endVertex)}";
@@ -135,7 +135,7 @@ namespace Graph_Constructor.Helpers
             return false;
         }
 
-        public static void DrawEdgeOnCanvas(Canvas canvas, Grid startVertex, Grid endVertex)
+        static ArrowLine CreateEdge(Grid startVertex, Grid endVertex)
         {
             Point centerStart = new Point()
             {
@@ -162,9 +162,46 @@ namespace Graph_Constructor.Helpers
                 ArrowEnds = ArrowEnds.End,
                 Tag = GetNameForEdge(startVertex, endVertex),
             };
+            return edge;
+        }
+
+        public static void DrawEdgeOnCanvas(Canvas canvas, Grid startVertex, Grid endVertex)
+        {
+            ArrowLine edge = CreateEdge(startVertex, endVertex);
             Canvas.SetLeft(edge, 15);
             Canvas.SetTop(edge, 15);
             canvas.Children.Add(edge);
+            UnHighlightSelection(startVertex);
+            UnHighlightSelection(endVertex);
+        }
+        public static void DrawEdgeOnCanvas(Canvas canvas, ArrowLine edge)
+        {
+            Canvas.SetLeft(edge, 15);
+            Canvas.SetTop(edge, 15);
+            canvas.Children.Add(edge);
+        }
+
+        public static void DrawWeightedEdgeOnCanvas(Canvas canvas, Grid startVertex, Grid endVertex, string weight)
+        {
+            ArrowLine edge = CreateEdge(startVertex, endVertex);
+            DrawEdgeOnCanvas(canvas, edge);
+            TextBlock weightBlock = new TextBlock()
+            {
+                Text = weight,
+                Tag = edge.Tag,
+                Foreground = Colors.ToBrush(Colors.EdgeWeightColor),
+                TextAlignment = TextAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontWeight = FontWeights.Bold,
+                FontSize = 18,
+                Width = Double.NaN,
+                Height = Double.NaN,
+            };
+            Point midlleOfEdge = GetMidPointOfLine(edge);
+            Canvas.SetLeft(weightBlock, midlleOfEdge.X);
+            Canvas.SetTop(weightBlock, midlleOfEdge.Y);
+            canvas.Children.Add(weightBlock);
             UnHighlightSelection(startVertex);
             UnHighlightSelection(endVertex);
         }
@@ -186,7 +223,24 @@ namespace Graph_Constructor.Helpers
             line.Y1 = newStart.Y;
             line.X2 = newEnd.X;
             line.Y2 = newEnd.Y;
+        }
 
+        public static void UpdateOutWeightEdgeLocationOnVertexMoving(Canvas canvas, Point newStartCenter, ArrowLine edge)
+        {
+            UpdateOutEdgeLocationOnVertexMoving(newStartCenter, edge);
+            UpdateEdgeWeightLocationOnVertexMoving(GetMidPointOfLine(edge), canvas.Children.OfType<TextBlock>().Where(x => x.Tag == edge.Tag).First());
+        }
+
+        public static void UpdateInWeightEdgeLocationOnVertexMoving(Canvas canvas, Point newStartCenter, ArrowLine edge)
+        {
+            UpdateInEdgeLocationOnVertexMoving(newStartCenter, edge);
+            UpdateEdgeWeightLocationOnVertexMoving(GetMidPointOfLine(edge), canvas.Children.OfType<TextBlock>().Where(x => x.Tag == edge.Tag).First());
+        }
+
+        static void UpdateEdgeWeightLocationOnVertexMoving(Point newStart, TextBlock weightBlock)
+        {
+            Canvas.SetLeft(weightBlock, newStart.X);
+            Canvas.SetTop(weightBlock, newStart.Y);
         }
 
         public static void UpdateInEdgeLocationOnVertexMoving(Point newEndCenter, ArrowLine line)
@@ -223,10 +277,30 @@ namespace Graph_Constructor.Helpers
             return vertex.Children.OfType<TextBlock>().Single().Text;
         }
 
-        public static void HighlightSelection(Grid selecteVertex)
+        public static void HighlightSelection(Grid selectedVertex)
         {
-            Ellipse ellipse = selecteVertex.Children.OfType<Ellipse>().FirstOrDefault();
-            ellipse.Fill = Colors.ToBrush(Colors.HighligthedVertex);
+            if (selectedVertex != null)
+            {
+                Ellipse ellipse = selectedVertex.Children.OfType<Ellipse>().FirstOrDefault();
+
+                ellipse.Fill = Colors.ToBrush(Colors.HighligthedVertex);
+            }
+        }
+
+        public static void UpdateWeightOnCanvas(Canvas canvas, string weightId, string newWeight)
+        {
+            TextBlock weightBlock = canvas.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightId || x.Tag.ToString() == weightId.Reverse()).FirstOrDefault();
+            if (weightBlock == null && newWeight != "∞")
+            {
+                string[] vertices = weightId.Split(' ');
+                Grid start = FindVertexOnCanvas(canvas, vertices[0]);
+                Grid end = FindVertexOnCanvas(canvas, vertices[1]);
+                if (!CheckIfEdgeExist(canvas, start, end))
+                    DrawWeightedEdgeOnCanvas(canvas, start, end, newWeight);
+            }
+
+            if (weightBlock != null)
+                weightBlock.Text = newWeight;
         }
 
         public static void UnHighlightSelection(Grid selectedVertex)
@@ -242,6 +316,16 @@ namespace Graph_Constructor.Helpers
         {
             double angle = Math.Atan2(second.Y - first.Y, second.X - first.X);
             return angle;
+        }
+
+        static Point GetMidPointOfLine(Point start, Point end)
+        {
+            return new Point((start.X + end.X) / 2, (start.Y + end.Y) / 2);
+        }
+
+        static Point GetMidPointOfLine(ArrowLine line)
+        {
+            return new Point((line.X1 + line.X2) / 2, (line.Y1 + line.Y2) / 2);
         }
 
         private static Point GetPointOnCircumference(Point center, int radius, double angle)

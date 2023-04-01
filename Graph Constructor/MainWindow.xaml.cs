@@ -4,12 +4,14 @@ using Graph_Constructor.Models;
 using Petzold.Media2D;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
-
-
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
 namespace Graph_Constructor
@@ -17,29 +19,32 @@ namespace Graph_Constructor
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
-
-        private static int _vertexId = 0;
+        static int _vertexId = 0;
+        bool _isWeightedGraph = false;
         public ObservableCollection<Vertex> Vertices { get; set; }
         public ObservableCollection<Edge> Edges { get; set; }
-        public ObservableCollection<ObservableCollection<AdjacencyMatrixCellValue>> AdjMatrix { get; set; }
-        public ObservableCollection<ObservableCollection<AdjacencyMatrixCellValue>> AdjList { get; set; }
+        private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix;
+        public ObservableCollection<ObservableCollection<MatrixCellValue>> Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
+        public ObservableCollection<ObservableCollection<MatrixCellValue>> AdjList { get; set; }
+        public bool IsWeightedGraph { get => _isWeightedGraph; set { _isWeightedGraph = value; OnPropertyChanged("IsWeightedGraph"); } }
 
         private Graph _graph;
         private Grid? _previousSelectedVertex;
         private Grid? _currentSelectedVertex;
         private Line _tempLineOnMouseMove;
         private bool _wasAlgoRunned;
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
-            _graph = new Graph();
+            _graph = new Graph(IsWeightedGraph);
             Vertices = new ObservableCollection<Vertex>(_graph.GetAllVertices().ToList());
             Edges = new ObservableCollection<Edge>(_graph.GetAllEdges().ToList());
-            AdjMatrix = AdjacencyMatrixHandler.CreateAdjacencyMatrix(Vertices.ToList(), Edges.ToList());
-            AdjList = new ObservableCollection<ObservableCollection<AdjacencyMatrixCellValue>>();
+            AdjList = new ObservableCollection<ObservableCollection<MatrixCellValue>>();
         }
 
         private void DrawGraphElement_Click(object sender, MouseButtonEventArgs e)
@@ -91,15 +96,38 @@ namespace Graph_Constructor
                 var adjacentEdgesOut = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[0] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
                 var adjacentEdgesIn = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[1] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
                 foreach (var edge in adjacentEdgesOut)
-                    DrawingHelpers.UpdateOutEdgeLocationOnVertexMoving(mousePos, edge);
+                {
+                    if (IsWeightedGraph)
+                        DrawingHelpers.UpdateOutWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
+                    else
+                        DrawingHelpers.UpdateOutEdgeLocationOnVertexMoving(mousePos, edge);
+                }
                 foreach (var edge in adjacentEdgesIn)
-                    DrawingHelpers.UpdateInEdgeLocationOnVertexMoving(mousePos, edge);
+                {
+                    if (IsWeightedGraph)
+                        DrawingHelpers.UpdateInWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
+                    else
+                        DrawingHelpers.UpdateInEdgeLocationOnVertexMoving(mousePos, edge);
+                }
             }
-
             if (MoveMode.IsChecked == false && _currentSelectedVertex != null && DrawingArea.Children.Count > 2)
                 DrawingHelpers.UpdateTemporarDashEdgeOnCanvas(_tempLineOnMouseMove, _currentSelectedVertex, mousePos);
         }
 
+        void RemoveEdge(Vertex start, Vertex end)
+        {
+            Matrix = AdjacencyMatrixHandler.RemoveEdge(Matrix, Vertices, start, end);
+            _graph.RemoveEdge(start, end);
+            AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
+        }
+
+        void RemoveWeightedEdge(Vertex start, Vertex end, string weightBlockId)
+        {
+            Matrix = WeightedMatrixHandler.RemoveEdge(Matrix, Vertices, _graph.GetEdge(start, end));
+            AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
+            _graph.RemoveEdge(start, end);
+            DrawingArea.Children.Remove(DrawingArea.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightBlockId).First());
+        }
         private void DeleteGraphElement_Click(object sender, MouseButtonEventArgs e)
         {
             if (e.OriginalSource is ArrowLine)
@@ -108,18 +136,17 @@ namespace Graph_Constructor
                 string[] extremities = graphEdge.Tag.ToString().Split(' ');
                 Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(extremities[0])).First();
                 Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(extremities[1])).First();
-
-                _graph.RemoveEdge(start, end);
-                AdjMatrix = AdjacencyMatrixHandler.RemoveEdge(AdjMatrix, Vertices, start, end);
-                AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
-                DrawingArea.Children.Remove(graphEdge);
+                if (_isWeightedGraph)
+                    RemoveWeightedEdge(start, end, graphEdge.Tag.ToString());
+                else
+                    RemoveEdge(start, end);
             }
             else if ((_currentSelectedVertex = SelectedVertex(e)) != null)
             {
                 Vertex vertexToRemove = Vertices.Where(vertex => vertex.Id.ToString() == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)).First();
                 _graph.RemoveVertex(vertexToRemove);
-                AdjMatrix = AdjacencyMatrixHandler.RemoveVertex(AdjMatrix, Vertices, vertexToRemove);
-                
+                Matrix = AdjacencyMatrixHandler.RemoveVertex(Matrix, Vertices, vertexToRemove);
+
                 //bad code
                 Vertices.Clear();
                 List<Vertex> updatedVertices = _graph.GetAllVertices().OrderBy(vertex => vertex.Id).ToList();
@@ -129,13 +156,13 @@ namespace Graph_Constructor
                 AdjList.Clear();
                 foreach (var vertex in Vertices)
                 {
-                    var temp = new ObservableCollection<AdjacencyMatrixCellValue>
+                    var temp = new ObservableCollection<MatrixCellValue>
                     {
-                        new AdjacencyMatrixCellValue(0)
+                        new MatrixCellValue(0)
                     };
                     if (_graph.AdjacencyList[vertex].Count != 0)
                         foreach (var edge in _graph.AdjacencyList[vertex])
-                            temp.Insert(0, new AdjacencyMatrixCellValue(edge.To.Id));
+                            temp.Insert(0, new MatrixCellValue(edge.To.Id));
                     AdjList.Add(temp);
                 }
 
@@ -171,11 +198,22 @@ namespace Graph_Constructor
 
             if (!DrawingHelpers.CheckIfEdgeExist(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
             {
-                _graph.AddEdge(start, end);
-                AdjMatrix = AdjacencyMatrixHandler.AddEdge(AdjMatrix, Vertices, start, end);
-                AdjList[Vertices.IndexOf(start)].Insert(0, new AdjacencyMatrixCellValue(end.Id));
+                AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
                 if (!DrawingHelpers.CheckForOppositeEdge(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
-                    DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex);
+                {
+                    if (IsWeightedGraph)
+                    {
+                        _graph.AddEdge(start, end);
+                        Matrix = WeightedMatrixHandler.AddEdge(Matrix, Vertices, _graph.GetEdge(start, end));
+                        DrawingHelpers.DrawWeightedEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, Matrix[Vertices.IndexOf(start)][Vertices.IndexOf(end)].Value.ToString());
+                    }
+                    else
+                    {
+                        _graph.AddEdge(start, end);
+                        Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, start, end);
+                        DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex);
+                    }
+                }
                 _previousSelectedVertex = null;
                 _currentSelectedVertex = null;
             }
@@ -193,10 +231,13 @@ namespace Graph_Constructor
             Vertex newVertex = new Vertex(++_vertexId, mouseLocation);
             _graph.AddVertex(newVertex);
             Vertices.Add(newVertex);
-            AdjMatrix = AdjacencyMatrixHandler.AddVertex(AdjMatrix, Vertices.Count);
-            var temp = new ObservableCollection<AdjacencyMatrixCellValue>
+            if (IsWeightedGraph)
+                Matrix = WeightedMatrixHandler.AddVertex(Matrix, Vertices.Count);
+            else
+                Matrix = AdjacencyMatrixHandler.AddVertex(Matrix, Vertices.Count);
+            var temp = new ObservableCollection<MatrixCellValue>
             {
-                new AdjacencyMatrixCellValue(0)
+                new MatrixCellValue(0)
             };
             AdjList.Add(temp);
 
@@ -214,6 +255,7 @@ namespace Graph_Constructor
         {
             if (e.Key == Key.Escape)
                 UnselectAll();
+            //Keyboard.ClearFocus();
         }
 
         private void UnselectAll()
@@ -245,6 +287,14 @@ namespace Graph_Constructor
                 AlgoLogs.Text += log.ToString();
                 _wasAlgoRunned = true;
             }
+
+            if (RunFord.IsChecked == true)
+            {
+                Ford ford = new Ford(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start));
+                AlgoLog log = new AlgoLog($"BFS from {start}", ford.Tags.Select(tag => tag.Cost).ToList());
+                AlgoLogs.Text += log.ToString();
+                _wasAlgoRunned = true;
+            }
         }
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)
@@ -257,15 +307,106 @@ namespace Graph_Constructor
             else
             {
                 DrawingArea.Children.Clear();
-                _graph = new Graph();
-                AdjMatrix.Clear();
+                _graph = new Graph(IsWeightedGraph);
+                Matrix.Clear();
                 Vertices.Clear();
                 AdjList.Clear();
+                GraphTypePopup.Visibility = Visibility.Visible;
+                GraphTypePopupBlurEffect.Effect = new BlurEffect()
+                {
+                    KernelType = KernelType.Gaussian,
+                    Radius = 5
+                };
+                DrawingArea.IsEnabled = false;
                 _vertexId = 0;
             }
 
         }
 
+        private void SetCanvasType_Click(object sender, RoutedEventArgs e)
+        {
+            if (((Button)sender).Name == "WeightedGraph")
+                IsWeightedGraph = true;
+            if (IsWeightedGraph)
+                Matrix = WeightedMatrixHandler.CreateWeightedMatrix(Vertices.ToList(), Edges.ToList());
+            else
+                Matrix = AdjacencyMatrixHandler.CreateAdjacencyMatrix(Vertices.ToList(), Edges.ToList());
+            GraphTypePopup.Visibility = Visibility.Collapsed;
+            GraphTypePopupBlurEffect.Effect = null;
+            DrawingArea.IsEnabled = true;
+        }
+        void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
+        readonly Regex regex = new Regex("[^0-9]+$");
+        private void Cell_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void Cell_GotFocus(object sender, RoutedEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            textBox.CaptureMouse();
+            string[] vertices = textBox.Tag.ToString().Split(" ");
+            _previousSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, vertices[0]);
+            _currentSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, vertices[1]);
+            DrawingHelpers.HighlightSelection(_currentSelectedVertex);
+            DrawingHelpers.HighlightSelection(_previousSelectedVertex);
+        }
+
+        private void Cell_GotMouseCapture(object sender, MouseEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            textBox.SelectAll();
+        }
+
+        private void Cell_IsMouseCaptureWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            textBox.SelectAll();
+        }
+
+        private void Cell_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            if (textBox.IsFocused)
+            {
+                BindingExpression bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
+                bindingExpression.UpdateSource();
+                TextBlock weightBlock = DrawingArea.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == textBox.Tag.ToString()).FirstOrDefault();
+                Vertex start = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex)));
+                Vertex end = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)));
+                if (textBox.Text == "∞" && weightBlock != null)
+                {
+                    ArrowLine edge = DrawingArea.Children.OfType<ArrowLine>().Where(x => x.Tag.ToString() == new string($"{start.Id} {end.Id}")).First();
+                    RemoveWeightedEdge(start, end, textBox.Tag.ToString());
+                    DrawingArea.Children.Remove(edge);
+                }
+                if (textBox.Text != "-" && textBox.Text != "∞")
+                {
+                    if (_graph.GetEdge(start, end) != null)
+                        _graph.UpdateEdgeWeight(start, end, int.Parse(textBox.Text));
+                    else
+                    {
+                        AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
+                        _graph.AddEdge(start, end, int.Parse(textBox.Text));
+                    }
+                    DrawingHelpers.UpdateWeightOnCanvas(DrawingArea, textBox.Tag.ToString(), textBox.Text);
+                }
+            }
+        }
+
+        private void Cell_LostFocus(object sender, RoutedEventArgs e)
+        {
+            DrawingHelpers.UnHighlightSelection(_currentSelectedVertex);
+            DrawingHelpers.UnHighlightSelection(_previousSelectedVertex);
+        }
     }
 }

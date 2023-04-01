@@ -40,6 +40,7 @@ namespace Graph_Constructor.Algorithms
 
         public async void SolveAnimation(Vertex start)
         {
+            List<int> path = new List<int>();
             Stack<Vertex> vertices = new Stack<Vertex>();
             bool hasNext;
             vertices.Push(start);

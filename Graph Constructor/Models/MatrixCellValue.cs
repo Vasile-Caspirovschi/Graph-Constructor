@@ -2,13 +2,19 @@
 
 namespace Graph_Constructor.Models
 {
-    public class AdjacencyMatrixCellValue : INotifyPropertyChanged
+    public class MatrixCellValue : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private int _value;
-        public AdjacencyMatrixCellValue(int value)
+        public string CellId { get; set; }
+        public MatrixCellValue(int value)
         {
             _value = value;
+        }
+        public MatrixCellValue(int value, string cellId)
+        {
+            _value = value;
+            CellId = cellId;
         }
 
         public int Value

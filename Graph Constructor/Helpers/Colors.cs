@@ -11,7 +11,8 @@ namespace Graph_Constructor.Helpers
             VisitedEdge = ColorTranslator.FromHtml("#edb922"),
             VisitedVertex = ColorTranslator.FromHtml("#b12e25"),
             DoneVertex = ColorTranslator.FromHtml("#279fdb"),
-            HighligthedVertex = ColorTranslator.FromHtml("#249543");
+            HighligthedVertex = ColorTranslator.FromHtml("#249543"),
+            EdgeWeightColor = ColorTranslator.FromHtml("#1f54a1");
 
         private static readonly Random rnd = new Random();
         public static Color GetRandom() => Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
