@@ -43,16 +43,6 @@ namespace Graph_Constructor.Models
         {
             foreach (var vertex in AdjacencyList.Where(vertex => vertex.Key.Id > removedId))
                 vertex.Key.Id -= 1;
-            //foreach (var vertex in AdjacencyList)
-            //{
-            //    foreach (var edge in vertex.Value)
-            //    {
-            //        if (edge.To.Id > removedId)
-            //        {
-            //            edge.To.Id
-            //        }
-            //    }
-            //}
         }
 
         private void Validate(Func<bool> condition)
@@ -101,7 +91,6 @@ namespace Graph_Constructor.Models
         public Edge GetEdge(Vertex from, Vertex to)
         {
             Validate(() => _adjacencyList.ContainsKey(from));
-
             return _adjacencyList[from].FirstOrDefault(v => v.From.Equals(from) && v.To.Equals(to));
         }
 
@@ -121,6 +110,20 @@ namespace Graph_Constructor.Models
                             adjacent.To,
                             adjacent.Cost));
             return result;
+        }
+
+        public int[,] GetWeightedMatrix()
+        {
+            int nVertices = _adjacencyList.Count;
+            var weightedMatrix = new int[ nVertices, nVertices];
+            for (int i = 0; i < nVertices; i++)
+                for (int j = 0; j < nVertices; j++)
+                    if (i != j)
+                        weightedMatrix[i,j] = int.MaxValue;
+            foreach (var vertex in _adjacencyList)
+                foreach (var adjacent in vertex.Value)
+                    weightedMatrix[vertex.Key.Id - 1, adjacent.To.Id - 1] = adjacent.Cost;
+            return weightedMatrix;
         }
 
         public Vertex GetVertexById(int id) => _adjacencyList.Keys.Single(k => Equals(id, k.Id));

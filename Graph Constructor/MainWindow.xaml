@@ -39,10 +39,13 @@
         <DataTemplate x:Key="HeaderCell">
             <TextBlock Text="{Binding Id}" FontSize="18" FontWeight="Bold" FontFamily="Italic"  Height="27.5" Width="27.5" TextAlignment="Center" />
         </DataTemplate>
+        <DataTemplate x:Key="BellmanHeaderCell">
+            <TextBlock Text="{Binding}" FontSize="18" FontWeight="Bold" FontFamily="Italic"  Height="27.5" Width="27.5" TextAlignment="Center" />
+        </DataTemplate>
         <ItemsPanelTemplate x:Key="HorizontalHeader">
             <StackPanel Orientation="Horizontal"/>
         </ItemsPanelTemplate>
-        <ItemsPanelTemplate x:Key="VeriticalHeader">
+        <ItemsPanelTemplate x:Key="VerticalHeader">
             <StackPanel Orientation="Vertical"/>
         </ItemsPanelTemplate>
         <DataTemplate x:Key="Matrix">
@@ -54,6 +57,22 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
         </DataTemplate>
+        
+        <DataTemplate x:Key="BellmanResultsMatrix">
+            <ItemsControl ItemsSource="{Binding}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBox x:Name="BellmanResultCell" IsReadOnly="True" FontFamily="Arial" FontSize="15" Text="{Binding Value, Converter = {StaticResource MatrixCellValidator}, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextAlignment="Center" Margin="1" Height="25.3" Width="25.3"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </DataTemplate>
+        
         <DataTemplate x:Key="List">
             <ItemsControl ItemsSource="{Binding}" ItemTemplate="{DynamicResource MatrixCell}">
                 <ItemsControl.ItemsPanel>
@@ -178,9 +197,9 @@
             <StackPanel Orientation="Horizontal"  Grid.Row="1" VerticalAlignment="Top">
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Content="DFS"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Content="BFS"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunFord" Content="Ford"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBellmanCalaba" Content="Bellman-Calaba"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDjikstra" Content="Djikstra"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFord" Content="Ford"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Content="Bellman-Calaba"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Content="Djikstra"/>
             </StackPanel>
         </Grid>
         <Grid Margin="20 0" Grid.Row="1">
@@ -214,9 +233,10 @@
         <TabControl Grid.Row="1" Grid.Column="1" Margin="0 0 20 25">
             <TabItem Header="Adjacency matrix" FontFamily="Consolas italic" IsSelected="True">
                 <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
-                    <Grid  Margin="10">
+                    <Grid Margin="10" x:Name="WeightedMatrixParent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
                             <RowDefinition/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
@@ -225,7 +245,9 @@
                         </Grid.ColumnDefinitions>
                         <ItemsControl Grid.Column="1" x:Name="MatrixHorizontalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource HorizontalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                         <ItemsControl Grid.Row="1" Grid.Column="1" x:Name="AdjacencyMatrix" ItemsSource="{Binding Matrix}" ItemTemplate="{DynamicResource Matrix}"/>
-                        <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VeriticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                        <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" Margin="0 0 5 0" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                        <ItemsControl Grid.Row="2" x:Name="BellmanResultsVerticalHeader" Margin="0 0 5 0" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource BellmanHeaderCell}"/>
+                        <ItemsControl Grid.Row="2" Grid.Column="1" x:Name="BellmanAlgoResultsMatrix"  ItemTemplate="{DynamicResource BellmanResultsMatrix}"/>
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -235,7 +257,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <ItemsControl x:Name="ListVerticalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VeriticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                    <ItemsControl x:Name="ListVerticalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                     <ItemsControl Grid.Column="1" x:Name="AdjacencyList" ItemsSource="{Binding AdjList}" ItemTemplate="{DynamicResource List}"/>
                 </Grid>
             </TabItem>

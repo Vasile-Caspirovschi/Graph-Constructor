@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -24,12 +23,15 @@ namespace Graph_Constructor
     {
         static int _vertexId = 0;
         bool _isWeightedGraph = false;
+        bool _isDirectedGraph = true;
         public ObservableCollection<Vertex> Vertices { get; set; }
         public ObservableCollection<Edge> Edges { get; set; }
         private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix;
         public ObservableCollection<ObservableCollection<MatrixCellValue>> Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
         public ObservableCollection<ObservableCollection<MatrixCellValue>> AdjList { get; set; }
         public bool IsWeightedGraph { get => _isWeightedGraph; set { _isWeightedGraph = value; OnPropertyChanged("IsWeightedGraph"); } }
+
+        public bool IsDirectedGraph { get => _isDirectedGraph; set { _isDirectedGraph = value; OnPropertyChanged("IsDirectedGraph"); } }
 
         private Graph _graph;
         private Grid? _previousSelectedVertex;
@@ -304,6 +306,15 @@ namespace Graph_Constructor
                 }
                 _wasAlgoRunned = true;
             }
+            if (RunBellmanCalaba.IsChecked == true)
+            {
+                Vertex target = _graph.GetVertexById(start);
+                BellmanCalaba bellman = new BellmanCalaba(_graph, DrawingArea, target);
+                BellmanAlgoResultsMatrix.ItemsSource = bellman.Vectors;
+                BellmanResultsVerticalHeader.ItemsSource = bellman.VectorsTitle;
+                await bellman.Init();
+                _wasAlgoRunned = true;
+            }
         }
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)
@@ -312,6 +323,10 @@ namespace Graph_Constructor
             {
                 DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
                 _wasAlgoRunned = false;
+                BellmanAlgoResultsMatrix.ItemsSource =null;
+                BellmanAlgoResultsMatrix.Items.Clear();
+                BellmanResultsVerticalHeader.ItemsSource = null;
+                BellmanResultsVerticalHeader.Items.Clear();
             }
             else
             {
@@ -335,7 +350,12 @@ namespace Graph_Constructor
         private void SetCanvasType_Click(object sender, RoutedEventArgs e)
         {
             if (((Button)sender).Name == "WeightedGraph")
+            {
+                IsDirectedGraph = false;
                 IsWeightedGraph = true;
+            }
+            else
+                IsWeightedGraph = false;
             if (IsWeightedGraph)
                 Matrix = WeightedMatrixHandler.CreateWeightedMatrix(Vertices.ToList(), Edges.ToList());
             else
@@ -368,6 +388,8 @@ namespace Graph_Constructor
             _currentSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, vertices[1]);
             DrawingHelpers.HighlightSelection(_currentSelectedVertex);
             DrawingHelpers.HighlightSelection(_previousSelectedVertex);
+            if (IsDirectedGraph)
+                textBox.IsReadOnly = true;
         }
 
         private void Cell_GotMouseCapture(object sender, MouseEventArgs e)
