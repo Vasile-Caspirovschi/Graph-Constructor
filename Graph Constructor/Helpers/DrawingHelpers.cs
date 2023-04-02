@@ -234,7 +234,7 @@ namespace Graph_Constructor.Helpers
         public static void UpdateInWeightEdgeLocationOnVertexMoving(Canvas canvas, Point newStartCenter, ArrowLine edge)
         {
             UpdateInEdgeLocationOnVertexMoving(newStartCenter, edge);
-            UpdateEdgeWeightLocationOnVertexMoving(GetMidPointOfLine(edge), canvas.Children.OfType<TextBlock>().Where(x => x.Tag == edge.Tag).First());
+            UpdateEdgeWeightLocationOnVertexMoving(GetMidPointOfLine(edge), canvas.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == edge.Tag.ToString()).First());
         }
 
         static void UpdateEdgeWeightLocationOnVertexMoving(Point newStart, TextBlock weightBlock)

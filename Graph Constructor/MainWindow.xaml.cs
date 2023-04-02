@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -268,7 +269,7 @@ namespace Graph_Constructor
             _previousSelectedVertex = null;
         }
 
-        private void RunAlgorithm_Click(object sender, RoutedEventArgs e)
+        private async void RunAlgorithm_Click(object sender, RoutedEventArgs e)
         {
             int start = 0;
             if (!(int.TryParse(StartVertex.Text, out start) && start > 0))
@@ -293,6 +294,7 @@ namespace Graph_Constructor
                 Vertex begin = _graph.GetVertexById(1);
                 Vertex target = _graph.GetVertexById(start);
                 Ford ford = new Ford(_graph, DrawingArea, begin, target);
+                await ford.Init();
                 AlgoLogs.Text = $"The min path length from {begin.Id} to {target.Id} is {ford.Tags[target].Cost}\n";
                 AlgoLogs.Text += $"All paths are:\n";
                 foreach (var path in ford.Paths)

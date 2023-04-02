@@ -2,7 +2,7 @@
 {
     public enum Delay
     {
-        VeryTiny = 50,
+        VeryTiny = 100,
         Tiny = 150,
         VeryShort = 250,
         Short = 500,
