@@ -21,11 +21,11 @@ namespace Graph_Constructor.Algorithms
         {
             public Vertex Vertex { get; set; }
             public int Cost { get; set; }
-            public List<Vertex> VerticesWichCome { get; set; }
+            public List<Vertex> IncomingVertices { get; set; }
             public Tag(Vertex vertex)
             {
                 Vertex = vertex;
-                VerticesWichCome = new List<Vertex>();
+                IncomingVertices = new List<Vertex>();
             }
         }
 
@@ -35,6 +35,8 @@ namespace Graph_Constructor.Algorithms
             _target = target;
             _graph = graph;
             _drawingArea = drawingArea;
+            Tags = new Dictionary<Vertex, Tag>();
+            Paths = new List<List<Vertex>>();
         }
 
         public async Task Init()
@@ -48,7 +50,6 @@ namespace Graph_Constructor.Algorithms
 
         void InitializeTags()
         {
-            Tags = new Dictionary<Vertex, Tag>();
             foreach (var vertex in _graph.GetAllVertices())
             {
                 Tag tag = new Tag(vertex);
@@ -86,7 +87,7 @@ namespace Graph_Constructor.Algorithms
                         hj.Cost = hi.Cost + edge.Cost;
                     if (diff == edge.Cost)
                     {
-                        hj.VerticesWichCome.Add(edge.From);
+                        hj.IncomingVertices.Add(edge.From);
                         diffInequality[edge] = false;
                     }
                     if (diff < edge.Cost) diffInequality[edge] = false;
@@ -99,7 +100,6 @@ namespace Graph_Constructor.Algorithms
         {
             HashSet<Vertex> visited = new HashSet<Vertex>();
             List<Vertex> path = new List<Vertex>();
-            Paths = new List<List<Vertex>>();
             path.Insert(0, _target);
             GetPathsUtil(_target, _from, visited, path);
         }
@@ -113,7 +113,7 @@ namespace Graph_Constructor.Algorithms
             }
             visited.Add(start);
 
-            foreach (var vertex in Tags[start].VerticesWichCome)
+            foreach (var vertex in Tags[start].IncomingVertices)
             {
                 if (!visited.Contains(vertex))
                 {

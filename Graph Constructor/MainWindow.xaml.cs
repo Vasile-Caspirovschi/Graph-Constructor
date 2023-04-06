@@ -143,6 +143,7 @@ namespace Graph_Constructor
                     RemoveWeightedEdge(start, end, graphEdge.Tag.ToString());
                 else
                     RemoveEdge(start, end);
+                DrawingArea.Children.Remove(graphEdge);
             }
             else if ((_currentSelectedVertex = SelectedVertex(e)) != null)
             {
@@ -308,11 +309,19 @@ namespace Graph_Constructor
             }
             if (RunBellmanCalaba.IsChecked == true)
             {
+                Vertex begin = _graph.GetVertexById(1);
                 Vertex target = _graph.GetVertexById(start);
-                BellmanCalaba bellman = new BellmanCalaba(_graph, DrawingArea, target);
+                BellmanCalaba bellman = new BellmanCalaba(_graph, DrawingArea, begin, target);
                 BellmanAlgoResultsMatrix.ItemsSource = bellman.Vectors;
                 BellmanResultsVerticalHeader.ItemsSource = bellman.VectorsTitle;
                 await bellman.Init();
+                AlgoLogs.Text = $"The min path length from {begin.Id} to {target.Id} is {bellman.PathLength}\n";
+                AlgoLogs.Text += $"All paths are:\n";
+                foreach (var path in bellman.Paths)
+                {
+                    AlgoLog log = new AlgoLog(string.Empty, path.Select(vertex => vertex.Id).ToList());
+                    AlgoLogs.Text += log.ToString();
+                }
                 _wasAlgoRunned = true;
             }
         }
@@ -323,7 +332,7 @@ namespace Graph_Constructor
             {
                 DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
                 _wasAlgoRunned = false;
-                BellmanAlgoResultsMatrix.ItemsSource =null;
+                BellmanAlgoResultsMatrix.ItemsSource = null;
                 BellmanAlgoResultsMatrix.Items.Clear();
                 BellmanResultsVerticalHeader.ItemsSource = null;
                 BellmanResultsVerticalHeader.Items.Clear();
