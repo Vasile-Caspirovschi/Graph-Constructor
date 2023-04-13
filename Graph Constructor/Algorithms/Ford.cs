@@ -112,7 +112,6 @@ namespace Graph_Constructor.Algorithms
                 return;
             }
             visited.Add(start);
-
             foreach (var vertex in Tags[start].IncomingVertices)
             {
                 if (!visited.Contains(vertex))

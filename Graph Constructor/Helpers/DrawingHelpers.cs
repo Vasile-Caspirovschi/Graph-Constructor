@@ -277,6 +277,27 @@ namespace Graph_Constructor.Helpers
             return vertex.Children.OfType<TextBlock>().Single().Text;
         }
 
+        public static void UpdateEdgeFlow(Canvas canvas,string identifier,Edge edge, int flow)
+        {
+            var block = canvas.Children.OfType<TextBlock>().Where(block => block.Tag.ToString() == identifier).First();
+            block.Text = $"{edge.Cost} ({flow})";
+            if (edge.Cost == flow)
+                block.Foreground = Colors.ToBrush(Colors.VisitedEdge);
+        }
+
+        public static void ClearEdgesFlow(Canvas canvas, Graph graph)
+        {
+            string[] name;
+            foreach (var block in canvas.Children.OfType<TextBlock>())
+            {
+                name = block.Tag.ToString().Split(' ');
+                Vertex start = graph.GetVertexById(int.Parse(name[0]));
+                Vertex end = graph.GetVertexById(int.Parse(name[1]));
+                block.Text = graph.GetEdge(start,end).Cost.ToString();
+                block.Foreground = Colors.ToBrush(Colors.EdgeWeightColor);
+            }
+        }
+
         public static void HighlightSelection(Grid selectedVertex)
         {
             if (selectedVertex != null)

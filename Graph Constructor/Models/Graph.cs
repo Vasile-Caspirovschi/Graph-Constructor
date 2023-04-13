@@ -104,22 +104,18 @@ namespace Graph_Constructor.Models
 
             foreach (var vertex in _adjacencyList)
                 foreach (var adjacent in vertex.Value)
-                    result.Add(
-                        new Edge(
-                            vertex.Key,
-                            adjacent.To,
-                            adjacent.Cost));
+                    result.Add(adjacent);
             return result;
         }
 
         public int[,] GetWeightedMatrix()
         {
             int nVertices = _adjacencyList.Count;
-            var weightedMatrix = new int[ nVertices, nVertices];
+            var weightedMatrix = new int[nVertices, nVertices];
             for (int i = 0; i < nVertices; i++)
                 for (int j = 0; j < nVertices; j++)
                     if (i != j)
-                        weightedMatrix[i,j] = int.MaxValue;
+                        weightedMatrix[i, j] = int.MaxValue;
             foreach (var vertex in _adjacencyList)
                 foreach (var adjacent in vertex.Value)
                     weightedMatrix[vertex.Key.Id - 1, adjacent.To.Id - 1] = adjacent.Cost;

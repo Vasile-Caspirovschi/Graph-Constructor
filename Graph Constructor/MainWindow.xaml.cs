@@ -324,6 +324,27 @@ namespace Graph_Constructor
                 }
                 _wasAlgoRunned = true;
             }
+            if (RunFordFulkersson.IsChecked == true)
+            {
+                Vertex begin = _graph.GetVertexById(1);
+                Vertex target = _graph.GetVertexById(start);
+                FordFulkersson fordFulkersson = new FordFulkersson(_graph, begin, target, DrawingArea);
+                await fordFulkersson.Init();
+                AlgoLogs.Text = $"The max flow {begin.Id} to {target.Id} is {fordFulkersson.MaxFlow}\n";
+                AlgoLogs.Text += $"All steps are below:\n";
+                int index = 0;
+                foreach (var path in fordFulkersson.AllPathsFromSourceToTarget)
+                {
+                    var vertices = path.Select(edge => edge.To.Id).ToList();
+                    vertices.Insert(0, 1);
+                    AlgoLog log = new AlgoLog(string.Empty, vertices);
+                    AlgoLogs.Text += log.ToString();
+                    AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index]}\n";
+                    index++;
+                }
+                _wasAlgoRunned = true;
+                DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
+            }
         }
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)
@@ -331,6 +352,7 @@ namespace Graph_Constructor
             if (_wasAlgoRunned)
             {
                 DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
+                DrawingHelpers.ClearEdgesFlow(DrawingArea, _graph);
                 _wasAlgoRunned = false;
                 BellmanAlgoResultsMatrix.ItemsSource = null;
                 BellmanAlgoResultsMatrix.Items.Clear();
