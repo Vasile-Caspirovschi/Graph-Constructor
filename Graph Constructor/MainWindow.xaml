@@ -207,6 +207,7 @@
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Content="Bellman-Calaba"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Content="Ford-Fulkersson"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Content="Djikstra"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunSpanningTree" Content="Spanning Tree"/>
             </StackPanel>
         </Grid>
         <Grid Margin="20 0" Grid.Row="1">
