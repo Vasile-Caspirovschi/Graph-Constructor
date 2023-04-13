@@ -203,20 +203,17 @@ namespace Graph_Constructor
             if (!DrawingHelpers.CheckIfEdgeExist(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
             {
                 AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
+                if (IsWeightedGraph)
+                    Matrix = WeightedMatrixHandler.AddEdge(Matrix, Vertices, _graph.GetEdge(start, end));
+                else
+                    Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, start, end);
                 if (!DrawingHelpers.CheckForOppositeEdge(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
                 {
+                    _graph.AddEdge(start, end);
                     if (IsWeightedGraph)
-                    {
-                        _graph.AddEdge(start, end);
-                        Matrix = WeightedMatrixHandler.AddEdge(Matrix, Vertices, _graph.GetEdge(start, end));
                         DrawingHelpers.DrawWeightedEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, Matrix[Vertices.IndexOf(start)][Vertices.IndexOf(end)].Value.ToString());
-                    }
                     else
-                    {
-                        _graph.AddEdge(start, end);
-                        Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, start, end);
                         DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex);
-                    }
                 }
                 _previousSelectedVertex = null;
                 _currentSelectedVertex = null;
