@@ -1,0 +1,12 @@
+ reimplement ford fulkersson and spanning tree algorithms and the djikstra as well
+ make possible to control the speed of the animation
+
+ fix the ui
+	adjacency matrix
+	logs
+	icons
+	make it responsive(the minimum)
+	work on animation's colors
+
+optional
+	find a better way to show the animation

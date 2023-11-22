@@ -17,6 +17,7 @@ namespace Graph_Constructor.Algorithms
         public Dictionary<Edge, int> EdgeFlows { get; set; }
         public int MaxFlow { get; set; }
         public List<int> StepsMinFlow { get; set; }
+
         public FordFulkersson(Graph graph, Vertex source, Vertex target, Canvas drawingArea)
         {
             _source = source;
