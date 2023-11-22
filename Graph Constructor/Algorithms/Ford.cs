@@ -55,7 +55,7 @@ namespace Graph_Constructor.Algorithms
                 Tag tag = new Tag(vertex);
                 if (vertex.Id == _from.Id)
                     tag.Cost = 0;
-                else tag.Cost = int.MaxValue;
+                else tag.Cost = int.MinValue/2;
                 Tags.Add(vertex, tag);
             }
         }
@@ -83,14 +83,14 @@ namespace Graph_Constructor.Algorithms
                     DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.DefaultEdgeColor);
                     DrawingHelpers.MarkVertex(_drawingArea, edge.To, Colors.DefaultVertexColor);
                     DrawingHelpers.MarkVertex(_drawingArea, edge.From, Colors.DefaultVertexColor);
-                    if (diff > edge.Cost)
+                    if (diff < edge.Cost)
                         hj.Cost = hi.Cost + edge.Cost;
                     if (diff == edge.Cost)
                     {
                         hj.IncomingVertices.Add(edge.From);
                         diffInequality[edge] = false;
                     }
-                    if (diff < edge.Cost) diffInequality[edge] = false;
+                    if (diff > edge.Cost) diffInequality[edge] = false;
                 }
             }
             return tags;
