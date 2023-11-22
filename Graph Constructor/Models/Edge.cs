@@ -17,7 +17,7 @@
         {
             _from = from;
             _to = to;
-            Cost = cost;
+            _cost = cost;
         }
 
         public Vertex From { get { return _from; } }

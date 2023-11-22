@@ -343,6 +343,11 @@ namespace Graph_Constructor
                     AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index]}\n";
                     index++;
                 }
+                AlgoLogs.Text += $"Min cut contains the following edges:\n";
+                foreach (var edge in fordFulkersson.MinCutEdges)
+                {
+                    AlgoLogs.Text = $"{edge.From.Id} to {edge.To.Id} is {edge.Cost}\n";
+                }
                 _wasAlgoRunned = true;
                 DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
             }

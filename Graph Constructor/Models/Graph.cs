@@ -6,7 +6,7 @@ namespace Graph_Constructor.Models
 {
     public class Graph
     {
-        IDictionary<Vertex, List<Edge>> _adjacencyList;
+        Dictionary<Vertex, List<Edge>> _adjacencyList;
         bool _isWeighted;
         public Graph(bool isWeighted)
         {
@@ -14,7 +14,7 @@ namespace Graph_Constructor.Models
             _isWeighted = isWeighted;
         }
 
-        public IDictionary<Vertex, List<Edge>> AdjacencyList { get { return _adjacencyList; } }
+        public Dictionary<Vertex, List<Edge>> AdjacencyList { get { return _adjacencyList; } }
 
         public bool IsWeighted { get => _isWeighted; }
 

@@ -17,6 +17,7 @@ namespace Graph_Constructor.Algorithms
         public Dictionary<Edge, int> EdgeFlows { get; set; }
         public int MaxFlow { get; set; }
         public List<int> StepsMinFlow { get; set; }
+        public List<Edge> MinCutEdges { get; set; }
 
         public FordFulkersson(Graph graph, Vertex source, Vertex target, Canvas drawingArea)
         {
@@ -27,8 +28,10 @@ namespace Graph_Constructor.Algorithms
             AllPathsFromSourceToTarget = new List<List<Edge>>();
             EdgeFlows = new Dictionary<Edge, int>();
             StepsMinFlow = new List<int>();
+            MinCutEdges = new List<Edge>();
         }
 
+        #region oldimplementation
         public async Task Init()
         {
             foreach (Edge edge in _graph.GetAllEdges())
@@ -54,6 +57,7 @@ namespace Graph_Constructor.Algorithms
                 };
                 await CheckAllPaths(adjacentEdge, _target, visited, path);
             }
+            FindMinCut();
         }
 
         async Task CheckAllPaths(Edge startEdge, Vertex target, HashSet<Edge> visited, List<Edge> localPath)
@@ -106,6 +110,52 @@ namespace Graph_Constructor.Algorithms
                 #endregion
             }
             MaxFlow += minFlow;
+        }
+        #endregion
+
+        public void FindMinCut()
+        {
+            List<Edge> minCutEdges = new List<Edge>();
+            int[,] residualGraph = BuildResidualGraph();
+            List<Vertex> visited = new(_graph.GetVerticesCount());
+
+            DFS(_source, residualGraph, visited);
+
+            foreach (var edge in _graph.GetAllEdges())
+            {
+                if (visited.Contains(edge.From) && !visited.Contains(edge.To) && EdgeFlows[edge] > 0)
+                {
+                    minCutEdges.Add(edge);
+                }
+            }
+
+            MinCutEdges = minCutEdges;
+        }
+
+        private int[,] BuildResidualGraph()
+        {
+            int[,] residualGraph = new int[_graph.GetVerticesCount(), _graph.GetVerticesCount()];
+
+            foreach (var edge in _graph.GetAllEdges())
+            {
+                int remainingCapacity = edge.Cost - EdgeFlows[edge];
+                residualGraph[edge.From.Id - 1, edge.To.Id - 1] = remainingCapacity;
+            }
+
+            return residualGraph;
+        }
+
+        private void DFS(Vertex u, int[,] residualGraph, List<Vertex> visited)
+        {
+            visited.Add(u);
+
+            foreach (var vertice in _graph.GetAllVertices())
+            {
+                if (!visited.Contains(vertice) && residualGraph[u.Id, vertice.Id - 1] > 0)
+                {
+                    DFS(vertice, residualGraph, visited);
+                }
+            }
         }
     }
 }
