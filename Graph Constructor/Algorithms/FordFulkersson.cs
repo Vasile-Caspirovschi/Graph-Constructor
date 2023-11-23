@@ -52,29 +52,9 @@ namespace Graph_Constructor.Algorithms
 
             while (path != null && path.Count > 0)
             {
-                var minCapacity = int.MaxValue;
-                foreach (var edge in path)
-                {
-                    if (edge.Cost < minCapacity)
-                        minCapacity = edge.Cost;
-                }
-
-                if (minCapacity == int.MaxValue || minCapacity < 0)
-                    throw new Exception("minCapacity " + minCapacity);
-
-                AugmentPath(path, minCapacity);
-                MaxFlow += minCapacity;
+                await ChangeFlowInCurrentPath(path);
                 Paths.Add(path);
                 path = Bfs(_source, _sink);
-            }
-        }
-
-        private void AugmentPath(IEnumerable<Edge> path, int minCapacity)
-        {
-            foreach (var edge in path)
-            {
-                edge.Cost -= minCapacity;
-                Residual[edge] += minCapacity;
             }
         }
 
@@ -98,7 +78,7 @@ namespace Graph_Constructor.Algorithms
                 foreach (var edge in _graph.AdjacencyList[current])
                 {
                     var next = edge.To;
-                    if (edge.Cost > 0 && !discovered.Contains(next))
+                    if (edge.Cost - Residual[edge] > 0 && !discovered.Contains(next))
                     {
                         next.TraverseParent = current;
                         queue.Enqueue(next);
@@ -115,7 +95,7 @@ namespace Graph_Constructor.Algorithms
             while (current.TraverseParent != null)
             {
                 var edge = _graph.GetEdge(current.TraverseParent, current);
-                path.Add(edge);
+                path.Insert(0, edge);
                 current = current.TraverseParent;
             }
             return path;
@@ -136,7 +116,7 @@ namespace Graph_Constructor.Algorithms
                 await Task.Delay((int)Delay.VeryTiny);
                 DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
                 await Task.Delay((int)Delay.VeryTiny);
-                DrawingHelpers.MarkVertex(_drawingArea, edge.From, Colors.VisitedVertex);
+                DrawingHelpers.MarkVertex(_drawingArea, edge.To, Colors.VisitedVertex);
                 await Task.Delay((int)Delay.VeryTiny);
                 #endregion
             }

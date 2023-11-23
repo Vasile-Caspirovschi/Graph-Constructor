@@ -340,7 +340,7 @@ namespace Graph_Constructor
                     vertices.Insert(0, 1);
                     AlgoLog log = new AlgoLog(string.Empty, vertices);
                     AlgoLogs.Text += log.ToString();
-                    //AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index++]}\n";
+                    AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index++]}\n";
                 }
                 _wasAlgoRunned = true;
                 DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
