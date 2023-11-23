@@ -1,5 +1,6 @@
 ﻿using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -9,24 +10,24 @@ namespace Graph_Constructor.Algorithms
     internal class FordFulkersson
     {
         readonly Vertex _source;
-        readonly Vertex _target;
+        readonly Vertex _sink;
         readonly Canvas _drawingArea;
         readonly Graph _graph;
 
-        public List<List<Edge>> AllPathsFromSourceToTarget { get; set; }
-        public Dictionary<Edge, int> EdgeFlows { get; set; }
+        public List<List<Edge>> Paths { get; set; }
+        public Dictionary<Edge, int> Residual { get; set; }
         public int MaxFlow { get; set; }
         public List<int> StepsMinFlow { get; set; }
         public List<Edge> MinCutEdges { get; set; }
 
-        public FordFulkersson(Graph graph, Vertex source, Vertex target, Canvas drawingArea)
+        public FordFulkersson(Graph graph, Vertex source, Vertex sink, Canvas drawingArea)
         {
             _source = source;
-            _target = target;
+            _sink = sink;
             _drawingArea = drawingArea;
             _graph = graph;
-            AllPathsFromSourceToTarget = new List<List<Edge>>();
-            EdgeFlows = new Dictionary<Edge, int>();
+            Paths = new List<List<Edge>>();
+            Residual = new Dictionary<Edge, int>();
             StepsMinFlow = new List<int>();
             MinCutEdges = new List<Edge>();
         }
@@ -36,49 +37,88 @@ namespace Graph_Constructor.Algorithms
         {
             foreach (Edge edge in _graph.GetAllEdges())
             {
-                EdgeFlows.Add(edge, 0);
+                Residual.Add(edge, 0);
                 #region animation
                 DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);
-                await Task.Delay((int)Delay.VeryTiny - 50);
+                await Task.Delay((int)Delay.VeryTiny);
                 #endregion
             }
             await DetermineMaxFlow();
         }
 
-        async Task DetermineMaxFlow()
+        private async Task DetermineMaxFlow()
         {
-            HashSet<Edge> visited = new HashSet<Edge>();
-            List<Edge> path;
-            foreach (var adjacentEdge in _graph.AdjacencyList[_source])
+            var path = Bfs(_source, _sink);
+
+            while (path != null && path.Count > 0)
             {
-                path = new List<Edge>
+                var minCapacity = int.MaxValue;
+                foreach (var edge in path)
                 {
-                    adjacentEdge
-                };
-                await CheckAllPaths(adjacentEdge, _target, visited, path);
+                    if (edge.Cost < minCapacity)
+                        minCapacity = edge.Cost;
+                }
+
+                if (minCapacity == int.MaxValue || minCapacity < 0)
+                    throw new Exception("minCapacity " + minCapacity);
+
+                AugmentPath(path, minCapacity);
+                MaxFlow += minCapacity;
+                Paths.Add(path);
+                path = Bfs(_source, _sink);
             }
-            FindMinCut();
         }
 
-        async Task CheckAllPaths(Edge startEdge, Vertex target, HashSet<Edge> visited, List<Edge> localPath)
+        private void AugmentPath(IEnumerable<Edge> path, int minCapacity)
         {
-            if (startEdge.To.Equals(target))
+            foreach (var edge in path)
             {
-                AllPathsFromSourceToTarget.Add(new List<Edge>(localPath));
-                await ChangeFlowInCurrentPath(localPath);
-                return;
+                edge.Cost -= minCapacity;
+                Residual[edge] += minCapacity;
             }
-            foreach (var edge in _graph.AdjacencyList[startEdge.To])
+        }
+
+        private List<Edge> Bfs(Vertex root, Vertex target)
+        {
+            root.TraverseParent = null!;
+            target.TraverseParent = null!;
+
+            var queue = new Queue<Vertex>();
+            var discovered = new HashSet<Vertex>();
+            queue.Enqueue(root);
+
+            while (queue.Count > 0)
             {
-                if (!visited.Contains(edge) && EdgeFlows[edge] != edge.Cost)
+                var current = queue.Dequeue();
+                discovered.Add(current);
+
+                if (current.Id == target.Id)
+                    return GetPath(current);
+
+                foreach (var edge in _graph.AdjacencyList[current])
                 {
-                    visited.Add(startEdge);
-                    localPath.Add(edge);
-                    await CheckAllPaths(edge, target, visited, localPath);
-                    localPath.Remove(edge);
+                    var next = edge.To;
+                    if (edge.Cost > 0 && !discovered.Contains(next))
+                    {
+                        next.TraverseParent = current;
+                        queue.Enqueue(next);
+                    }
                 }
             }
-            visited.Remove(startEdge);
+            return null;
+        }
+
+        private List<Edge> GetPath(Vertex node)
+        {
+            var path = new List<Edge>();
+            var current = node;
+            while (current.TraverseParent != null)
+            {
+                var edge = _graph.GetEdge(current.TraverseParent, current);
+                path.Add(edge);
+                current = current.TraverseParent;
+            }
+            return path;
         }
 
         async Task ChangeFlowInCurrentPath(List<Edge> path)
@@ -88,7 +128,7 @@ namespace Graph_Constructor.Algorithms
             int minFlow = int.MaxValue;
             foreach (var edge in path)
             {
-                int min = edge.Cost - EdgeFlows[edge];
+                int min = edge.Cost - Residual[edge];
                 if (min < minFlow)
                     minFlow = min;
                 #region animation
@@ -103,59 +143,14 @@ namespace Graph_Constructor.Algorithms
             StepsMinFlow.Add(minFlow);
             foreach (var edge in path)
             {
-                EdgeFlows[edge] += minFlow;
+                Residual[edge] += minFlow;
                 #region animation
-                DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, EdgeFlows[edge]);
+                DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, Residual[edge]);
                 await Task.Delay((int)Delay.VeryTiny);
                 #endregion
             }
             MaxFlow += minFlow;
         }
         #endregion
-
-        public void FindMinCut()
-        {
-            List<Edge> minCutEdges = new List<Edge>();
-            int[,] residualGraph = BuildResidualGraph();
-            List<Vertex> visited = new(_graph.GetVerticesCount());
-
-            DFS(_source, residualGraph, visited);
-
-            foreach (var edge in _graph.GetAllEdges())
-            {
-                if (visited.Contains(edge.From) && !visited.Contains(edge.To) && EdgeFlows[edge] > 0)
-                {
-                    minCutEdges.Add(edge);
-                }
-            }
-
-            MinCutEdges = minCutEdges;
-        }
-
-        private int[,] BuildResidualGraph()
-        {
-            int[,] residualGraph = new int[_graph.GetVerticesCount(), _graph.GetVerticesCount()];
-
-            foreach (var edge in _graph.GetAllEdges())
-            {
-                int remainingCapacity = edge.Cost - EdgeFlows[edge];
-                residualGraph[edge.From.Id - 1, edge.To.Id - 1] = remainingCapacity;
-            }
-
-            return residualGraph;
-        }
-
-        private void DFS(Vertex u, int[,] residualGraph, List<Vertex> visited)
-        {
-            visited.Add(u);
-
-            foreach (var vertice in _graph.GetAllVertices())
-            {
-                if (!visited.Contains(vertice) && residualGraph[u.Id, vertice.Id - 1] > 0)
-                {
-                    DFS(vertice, residualGraph, visited);
-                }
-            }
-        }
     }
 }

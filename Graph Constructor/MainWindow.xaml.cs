@@ -327,26 +327,20 @@ namespace Graph_Constructor
             }
             if (RunFordFulkersson.IsChecked == true)
             {
-                Vertex begin = _graph.GetVertexById(1);
-                Vertex target = _graph.GetVertexById(start);
-                FordFulkersson fordFulkersson = new FordFulkersson(_graph, begin, target, DrawingArea);
+                Vertex source = _graph.GetVertexById(1);
+                Vertex sink = _graph.GetVertexById(start);
+                FordFulkersson fordFulkersson = new FordFulkersson(_graph, source, sink, DrawingArea);
                 await fordFulkersson.Init();
-                AlgoLogs.Text = $"The max flow {begin.Id} to {target.Id} is {fordFulkersson.MaxFlow}\n";
+                AlgoLogs.Text = $"The max flow {source.Id} to {sink.Id} is {fordFulkersson.MaxFlow}\n";
                 AlgoLogs.Text += $"All steps are below:\n";
                 int index = 0;
-                foreach (var path in fordFulkersson.AllPathsFromSourceToTarget)
+                foreach (var path in fordFulkersson.Paths)
                 {
                     var vertices = path.Select(edge => edge.To.Id).ToList();
                     vertices.Insert(0, 1);
                     AlgoLog log = new AlgoLog(string.Empty, vertices);
                     AlgoLogs.Text += log.ToString();
-                    AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index]}\n";
-                    index++;
-                }
-                AlgoLogs.Text += $"Min cut contains the following edges:\n";
-                foreach (var edge in fordFulkersson.MinCutEdges)
-                {
-                    AlgoLogs.Text = $"{edge.From.Id} to {edge.To.Id} is {edge.Cost}\n";
+                    //AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index++]}\n";
                 }
                 _wasAlgoRunned = true;
                 DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
