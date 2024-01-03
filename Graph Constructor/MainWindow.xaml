@@ -199,6 +199,10 @@
             <StackPanel Orientation="Horizontal" Margin="0 5 0 0" VerticalAlignment="Center">
                 <xctk:WatermarkTextBox Height="25" x:Name="StartVertex" Watermark="Enter start" TextAlignment="Center" FontSize="12" Width="65"/>
                 <Button x:Name="RunAlgorithm" Click="RunAlgorithm_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Run Algorithm " Content="{DynamicResource Run}"/>
+                <DockPanel VerticalAlignment="Center">
+                    <Label DockPanel.Dock="Left" FontWeight="Bold">Speed:</Label>
+                    <Slider Maximum="100" Width="200" TickPlacement="BottomRight" TickFrequency="5"/>
+                </DockPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal"  Grid.Row="1" VerticalAlignment="Top">
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Content="DFS"/>

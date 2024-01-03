@@ -32,7 +32,6 @@ namespace Graph_Constructor.Algorithms
             MinCutEdges = new List<Edge>();
         }
 
-        #region oldimplementation
         public async Task Init()
         {
             foreach (Edge edge in _graph.GetAllEdges())
@@ -131,6 +130,5 @@ namespace Graph_Constructor.Algorithms
             }
             MaxFlow += minFlow;
         }
-        #endregion
     }
 }

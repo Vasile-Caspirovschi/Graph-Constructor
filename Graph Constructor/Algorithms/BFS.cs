@@ -25,7 +25,6 @@ namespace Graph_Constructor.Algorithms
             SolveAnimation(_from);
         }
 
-
         public void SolvePath(Vertex start)
         {
             Queue<Vertex> vertices = new Queue<Vertex>();
