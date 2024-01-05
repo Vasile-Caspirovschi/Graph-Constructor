@@ -8,32 +8,25 @@ using System.Windows.Controls;
 
 namespace Graph_Constructor.Algorithms
 {
-    internal class BellmanCalaba
+    internal class BellmanCalaba : Algorithm
     {
-        readonly Graph _graph;
-        readonly Vertex _target;
-        readonly Vertex _from;
-        readonly Canvas _drawingArea;
-        int vectorId = 0;
+        private int vectorId = 0;
         public ObservableCollection<string> VectorsTitle { get; set; }
         public ObservableCollection<ObservableCollection<MatrixCellValue>> Vectors { get; set; }
         public Dictionary<Vertex, List<Vertex>> OutcomingVertices { get; set; }
         public List<List<Vertex>> Paths { get; set; }
         public int PathLength { get; set; }
 
-        public BellmanCalaba(Graph graph, Canvas drawingArea, Vertex from, Vertex target)
+        public BellmanCalaba(Graph graph, Canvas drawingArea, Vertex from, Vertex target) 
+            : base(graph, drawingArea, from, target!)
         {
-            _target = target;
-            _graph = graph;
-            _from = from;
-            _drawingArea = drawingArea;
             Vectors = new ObservableCollection<ObservableCollection<MatrixCellValue>>();
             VectorsTitle = new ObservableCollection<string>();
             OutcomingVertices = new Dictionary<Vertex, List<Vertex>>();
             Paths = new List<List<Vertex>>();
         }
 
-        public async Task Init()
+        public override async Task Execute()
         {
             await DetermineVectors();
             await DetermineOutcomingVertices();
@@ -45,7 +38,7 @@ namespace Graph_Constructor.Algorithms
         {
             bool stopCondition = true;
             int nOfVertices = 0, min = 0, diff = 0;
-            int[,] weightedMatrix = _graph.GetWeightedMatrix();
+            int[,] weightedMatrix = graph.GetWeightedMatrix();
             nOfVertices = weightedMatrix.GetLength(0);
 
             var v0 = new ObservableCollection<MatrixCellValue>();
@@ -53,7 +46,7 @@ namespace Graph_Constructor.Algorithms
             VectorsTitle.Add($"V{vectorId++}");
             for (int i = 0; i < nOfVertices; i++)
             {
-                Vectors[0].Add(new MatrixCellValue(weightedMatrix[i, _target.Id - 1]));
+                Vectors[0].Add(new MatrixCellValue(weightedMatrix[i, target!.Id - 1]));
                 await Task.Delay((int)Delay.VeryTiny / 2);
             }
 
@@ -88,8 +81,8 @@ namespace Graph_Constructor.Algorithms
 
         public async Task DetermineOutcomingVertices()
         {
-            var weightedMatrix = _graph.GetWeightedMatrix();
-            foreach (Vertex vertex in _graph.GetAllVertices())
+            var weightedMatrix = graph.GetWeightedMatrix();
+            foreach (Vertex vertex in graph.GetAllVertices())
                 OutcomingVertices.Add(vertex, new List<Vertex>());
 
             int[] lastVector = Vectors.Last().Select(x => x.Value).ToArray();
@@ -97,21 +90,21 @@ namespace Graph_Constructor.Algorithms
             int diff = 0;
             for (int i = 0; i < lastVector.Length; i++)
             {
-                Vertex start = _graph.GetVertexById(i + 1);
-                DrawingHelpers.MarkVertex(_drawingArea, start, Colors.DoneVertex);
+                Vertex start = graph.GetVertexById(i + 1);
+                DrawingHelpers.MarkVertex(drawingArea, start, Colors.DoneVertex);
 
                 for (int j = 0; j < lastVector.Length; j++)
                 {
-                    Vertex end = _graph.GetVertexById(j + 1);
-                    Edge edge = _graph.GetEdge(start, end);
+                    Vertex end = graph.GetVertexById(j + 1);
+                    Edge edge = graph.GetEdge(start, end);
 
-                    DrawingHelpers.MarkVertex(_drawingArea, end, Colors.VisitedVertex);
+                    DrawingHelpers.MarkVertex(drawingArea, end, Colors.VisitedVertex);
                     if (edge != null)
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                     await Task.Delay((int)Delay.VeryTiny);
-                    DrawingHelpers.MarkVertex(_drawingArea, end, Colors.DefaultVertexColor);
+                    DrawingHelpers.MarkVertex(drawingArea, end, Colors.DefaultVertexColor);
                     if (edge != null)
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.DefaultEdgeColor);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
 
                     if (i == j || weightedMatrix[i, j] == int.MaxValue)
                         continue;
@@ -119,7 +112,7 @@ namespace Graph_Constructor.Algorithms
                     if (diff == lastVector[j])
                         OutcomingVertices[start].Add(end);
                 }
-                DrawingHelpers.MarkVertex(_drawingArea, start, Colors.DefaultVertexColor);
+                DrawingHelpers.MarkVertex(drawingArea, start, Colors.DefaultVertexColor);
             }
         }
 
@@ -127,13 +120,13 @@ namespace Graph_Constructor.Algorithms
         {
             HashSet<Vertex> visited = new HashSet<Vertex>();
             List<Vertex> path = new List<Vertex>();
-            path.Add(_from);
-            GetPathsUtil(_from, _target, visited, path);
+            path.Add(start);
+            GetPathsUtil(start, target!, visited, path);
         }
 
         void GetPathsUtil(Vertex start, Vertex target, HashSet<Vertex> visited, List<Vertex> localPath)
         {
-            if (start.Equals(target))
+            if (start.Equals(target!))
             {
                 Paths.Add(new List<Vertex>(localPath));
                 return;
@@ -145,7 +138,7 @@ namespace Graph_Constructor.Algorithms
                 if (!visited.Contains(vertex))
                 {
                     localPath.Add(vertex);
-                    GetPathsUtil(vertex, target, visited, localPath);
+                    GetPathsUtil(vertex, target!, visited, localPath);
                     localPath.Remove(vertex);
                 }
             }
@@ -154,23 +147,38 @@ namespace Graph_Constructor.Algorithms
 
         async Task HighlightPathsOnCanvas()
         {
-            DrawingHelpers.ClearCanvasFromAnimationEffects(_drawingArea);
-            Vertex prevVertex = _from;
+            DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
+            Vertex prevVertex = start;
             foreach (var path in Paths)
             {
                 foreach (var vertex in path)
                 {
-                    if (vertex != _from)
+                    if (vertex != start)
                     {
-                        Edge edge = _graph.GetEdge(prevVertex, vertex);
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
+                        Edge edge = graph.GetEdge(prevVertex, vertex);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         await Task.Delay((int)Delay.VeryTiny);
                     }
-                    DrawingHelpers.MarkVertex(_drawingArea, vertex, Colors.DoneVertex);
+                    DrawingHelpers.MarkVertex(drawingArea, vertex, Colors.DoneVertex);
                     await Task.Delay((int)Delay.VeryTiny);
                     prevVertex = vertex;
                 }
             }
+        }
+
+        public override AlgoLog GetResults()
+        {
+            var title = $"The min path length from {start.Id} to {target!.Id} is {PathLength}\n";
+            var details = "All paths are:\n";
+            AlgoLog log = new AlgoLog(title, details);
+            Paths.ForEach(path => log.AddMoreDetails(path.Select(vertex => vertex.Id).ToList()));
+            return log;
+        }
+
+        public override void BindViewProperties(params Control[] viewControls)
+        {
+            ((ItemsControl)viewControls[0]).ItemsSource = Vectors;
+            ((ItemsControl)viewControls[1]).ItemsSource = VectorsTitle;
         }
     }
 }

@@ -6,72 +6,59 @@ using System.Windows.Controls;
 
 namespace Graph_Constructor.Algorithms
 {
-    public class BFS
+    public class BFS : Algorithm
     {
-        private readonly Graph _graph;
-        private readonly Vertex _from;
         private readonly HashSet<Vertex> _visited;
-        private readonly Canvas _drawingArea;
         public List<int> Path { get; set; }
-        public BFS(Graph graph, Canvas drawingArea, Vertex from)
+
+        public BFS(Graph graph, Canvas drawingArea, Vertex from) : base(graph, drawingArea, from, null)
         {
-            _from = from;
-            _graph = graph;
             _visited = new HashSet<Vertex>();
             Path = new List<int>();
-            _drawingArea = drawingArea;
-            SolvePath(_from);
-            _visited.Clear();
-            SolveAnimation(_from);
         }
 
-        public void SolvePath(Vertex start)
+        public override async Task Execute()
         {
-            Queue<Vertex> vertices = new Queue<Vertex>();
-            vertices.Enqueue(start);
-            _visited.Add(start);
-            while (vertices.Count != 0)
-            {
-                start = vertices.Peek();
-                Path.Add(start.Id);
-
-                foreach (Edge edge in _graph.AdjacencyList[start])
-                {
-                    if (!_visited.Contains(edge.To))
-                    {
-                        vertices.Enqueue(edge.To);
-                        _visited.Add(edge.To);
-                    }
-                }
-                vertices.Dequeue();
-            }
+            await SolveBFS();
         }
 
-        public async void SolveAnimation(Vertex start)
+        public async Task SolveBFS()
         {
             Queue<Vertex> vertices = new Queue<Vertex>();
-            vertices.Enqueue(start);
-            _visited.Add(start);
+            Vertex from = start;
+            vertices.Enqueue(from);
+            _visited.Add(from);
             while (vertices.Count != 0)
             {
-                start = vertices.Peek();
-                DrawingHelpers.MarkVertex(_drawingArea, start, Colors.VisitedVertex);
+                from = vertices.Peek();
+                Path.Add(from.Id);
+                DrawingHelpers.MarkVertex(drawingArea, from, Colors.VisitedVertex);
                 await Task.Delay((int)Delay.Tiny);
-                foreach (Edge edge in _graph.AdjacencyList[start])
+                foreach (Edge edge in graph.AdjacencyList[from])
                 {
                     if (!_visited.Contains(edge.To))
                     {
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
-                        DrawingHelpers.MarkVertex(_drawingArea, edge.To, Colors.VisitedVertex);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
+                        DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
                         await Task.Delay((int)Delay.VeryShort);
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.DefaultEdgeColor);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                         vertices.Enqueue(edge.To);
                         _visited.Add(edge.To);
                     }
                 }
                 vertices.Dequeue();
-                DrawingHelpers.MarkVertex(_drawingArea, start, Colors.DoneVertex);
+                DrawingHelpers.MarkVertex(drawingArea, from, Colors.DoneVertex);
             }
+        }
+
+        public override AlgoLog GetResults()
+        {
+            return new AlgoLog($"DFS from {start.Id}\n", Path);
+        }
+
+        public override void BindViewProperties(params Control[] controls)
+        {
+            return;
         }
     }
 }

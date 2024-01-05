@@ -1,64 +1,52 @@
 ﻿using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
 namespace Graph_Constructor.Algorithms
 {
-    public class DFS
+    public class DFS : Algorithm
     {
-        private readonly Graph _graph;
-        private readonly Vertex _from;
         private readonly HashSet<Vertex> _visited;
-        private readonly Canvas _drawingArea;
-        public List<int> Path { get; set; } 
 
-        public DFS(Graph graph, Canvas drawingArea, Vertex from)
+        public List<int> Path { get; set; }
+
+        public DFS(Graph graph, Canvas drawingArea, Vertex from) : base(graph, drawingArea, from, null)
         {
-            _from = from;
-            _graph = graph;
             _visited = new HashSet<Vertex>();
             Path = new List<int>();
-            _drawingArea = drawingArea;
-            SolvePath(_from);
-            _visited.Clear();
-            SolveAnimation(_from);
         }
 
-
-        public void SolvePath(Vertex at)
+        public override async Task Execute()
         {
-            _visited.Add(at);
-            Path.Add(at.Id);
-            foreach (Edge edge in _graph.AdjacencyList[at])
-                if (!_visited.Contains(edge.To))
-                    SolvePath(edge.To);
+            await SolveDFS(start);
         }
 
-        public async void SolveAnimation(Vertex start)
+        private async Task SolveDFS(Vertex start)
         {
             List<int> path = new List<int>();
             Stack<Vertex> vertices = new Stack<Vertex>();
             bool hasNext;
             vertices.Push(start);
             _visited.Add(start);
+            Path.Add(start.Id);
             while (vertices.Count != 0)
             {
                 start = vertices.Peek();
                 hasNext = false;
-                DrawingHelpers.MarkVertex(_drawingArea, start, Colors.VisitedVertex);
+                DrawingHelpers.MarkVertex(drawingArea, start, Colors.VisitedVertex);
                 await Task.Delay((int)Delay.VeryShort);
-                foreach (Edge edge in _graph.AdjacencyList[start])
+                foreach (Edge edge in graph.AdjacencyList[start])
                 {
                     if (!_visited.Contains(edge.To))
                     {
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         await Task.Delay((int)Delay.VeryShort);
                         vertices.Push(edge.To);
                         _visited.Add(edge.To);
+                        Path.Add(edge.To.Id);
                         hasNext = true;
                         break;
                     }
@@ -66,9 +54,19 @@ namespace Graph_Constructor.Algorithms
                 if (!hasNext)
                 {
                     vertices.Pop();
-                    DrawingHelpers.MarkVertex(_drawingArea, start, Colors.DoneVertex);
+                    DrawingHelpers.MarkVertex(drawingArea, start, Colors.DoneVertex);
                 }
             }
+        }
+
+        public override AlgoLog GetResults()
+        {
+            return new AlgoLog($"DFS from {start.Id}\n", Path);
+        }
+
+        public override void BindViewProperties(params Control[] controls)
+        {
+            return;
         }
     }
 }

@@ -2,7 +2,6 @@
 using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using Petzold.Media2D;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -278,82 +277,21 @@ namespace Graph_Constructor
             int start = 0;
             if (!(int.TryParse(StartVertex.Text, out start) && start > 0))
                 return;
-            if (RunDFS.IsChecked == true)
+            var selectedAlgorithm = AlgorithmsPanel.Children.OfType<RadioButton>()
+                 .First(r => r.IsChecked.HasValue && r.IsChecked.Value);
+            Algorithm algorithm = selectedAlgorithm.Tag switch
             {
-                DFS dfs = new DFS(_graph, DrawingArea, _graph.GetVertexById(start));
-                AlgoLog log = new AlgoLog($"DFS from {start}\n", dfs.Path);
-                AlgoLogs.Text += log.ToString();
-                _wasAlgoRunned = true;
-            }
-            if (RunBFS.IsChecked == true)
-            {
-                BFS bfs = new BFS(_graph, DrawingArea, _graph.GetVertexById(start));
-                AlgoLog log = new AlgoLog($"BFS from {start}\n", bfs.Path);
-                AlgoLogs.Text += log.ToString();
-                _wasAlgoRunned = true;
-            }
-
-            if (RunFord.IsChecked == true)
-            {
-                Vertex begin = _graph.GetVertexById(1);
-                Vertex target = _graph.GetVertexById(start);
-                Ford ford = new Ford(_graph, DrawingArea, begin, target);
-                await ford.Init();
-                AlgoLogs.Text = $"The min path length from {begin.Id} to {target.Id} is {ford.Tags[target].Cost}\n";
-                AlgoLogs.Text += $"All paths are:\n";
-                foreach (var path in ford.Paths)
-                {
-                    AlgoLog log = new AlgoLog(string.Empty, path.Select(vertex => vertex.Id).ToList());
-                    AlgoLogs.Text += log.ToString();
-                }
-                _wasAlgoRunned = true;
-            }
-            if (RunBellmanCalaba.IsChecked == true)
-            {
-                Vertex begin = _graph.GetVertexById(1);
-                Vertex target = _graph.GetVertexById(start);
-                BellmanCalaba bellman = new BellmanCalaba(_graph, DrawingArea, begin, target);
-                BellmanAlgoResultsMatrix.ItemsSource = bellman.Vectors;
-                BellmanResultsVerticalHeader.ItemsSource = bellman.VectorsTitle;
-                await bellman.Init();
-                AlgoLogs.Text = $"The min path length from {begin.Id} to {target.Id} is {bellman.PathLength}\n";
-                AlgoLogs.Text += $"All paths are:\n";
-                foreach (var path in bellman.Paths)
-                {
-                    AlgoLog log = new AlgoLog(string.Empty, path.Select(vertex => vertex.Id).ToList());
-                    AlgoLogs.Text += log.ToString();
-                }
-                _wasAlgoRunned = true;
-            }
-            if (RunFordFulkersson.IsChecked == true)
-            {
-                Vertex source = _graph.GetVertexById(1);
-                Vertex sink = _graph.GetVertexById(start);
-                FordFulkersson fordFulkersson = new FordFulkersson(_graph, source, sink, DrawingArea);
-                await fordFulkersson.Init();
-                AlgoLogs.Text = $"The max flow {source.Id} to {sink.Id} is {fordFulkersson.MaxFlow}\n";
-                AlgoLogs.Text += $"All steps are below:\n";
-                int index = 0;
-                foreach (var path in fordFulkersson.Paths)
-                {
-                    var vertices = path.Select(edge => edge.To.Id).ToList();
-                    vertices.Insert(0, 1);
-                    AlgoLog log = new AlgoLog(string.Empty, vertices);
-                    AlgoLogs.Text += log.ToString();
-                    AlgoLogs.Text += $"min = {fordFulkersson.StepsMinFlow[index++]}\n";
-                }
-                _wasAlgoRunned = true;
-                DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
-            }
-            if (RunSpanningTree.IsChecked == true)
-            {
-                DFS dfs = new DFS(_graph, DrawingArea, _graph.GetVertexById(start));
-                AlgoLog log = new AlgoLog($"Minimal spanning tree is:\n", dfs.Path);
-                AlgoLogs.Text += $"Minimal spanning tree is {dfs.Path.Count - 1}:\n";
-                for (int i = 0; i < dfs.Path.Count - 1; i++)
-                    AlgoLogs.Text += $"{dfs.Path[i]} -> {dfs.Path[i + 1]}\n";
-                _wasAlgoRunned = true;
-            }
+                "DFS" => new DFS(_graph, DrawingArea, _graph.GetVertexById(start)),
+                "BFS" => new BFS(_graph, DrawingArea, _graph.GetVertexById(start)),
+                "Ford" => new Ford(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
+                "BellmanCalaba" => new BellmanCalaba(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
+                "FordFulkersson" => new FordFulkersson(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
+                _ => null!
+            };
+            algorithm.BindViewProperties(BellmanAlgoResultsMatrix, BellmanResultsVerticalHeader);
+            await algorithm.Execute();
+            AlgoLogs.Children.Add(algorithm.GetResults().GetLog());
+            _wasAlgoRunned = true;
         }
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)

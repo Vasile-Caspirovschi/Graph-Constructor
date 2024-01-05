@@ -2,58 +2,48 @@
 using Graph_Constructor.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
 namespace Graph_Constructor.Algorithms
 {
-    internal class FordFulkersson
+    internal class FordFulkersson : Algorithm
     {
-        readonly Vertex _source;
-        readonly Vertex _sink;
-        readonly Canvas _drawingArea;
-        readonly Graph _graph;
-
         public List<List<Edge>> Paths { get; set; }
         public Dictionary<Edge, int> Residual { get; set; }
         public int MaxFlow { get; set; }
         public List<int> StepsMinFlow { get; set; }
         public List<Edge> MinCutEdges { get; set; }
 
-        public FordFulkersson(Graph graph, Vertex source, Vertex sink, Canvas drawingArea)
+        public FordFulkersson(Graph graph, Canvas drawingArea, Vertex start, Vertex? target) : base(graph, drawingArea, start, target)
         {
-            _source = source;
-            _sink = sink;
-            _drawingArea = drawingArea;
-            _graph = graph;
             Paths = new List<List<Edge>>();
             Residual = new Dictionary<Edge, int>();
             StepsMinFlow = new List<int>();
             MinCutEdges = new List<Edge>();
         }
 
-        public async Task Init()
+        public override async Task Execute()
         {
-            foreach (Edge edge in _graph.GetAllEdges())
+            foreach (Edge edge in graph.GetAllEdges())
             {
                 Residual.Add(edge, 0);
-                #region animation
-                DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);
+                DrawingHelpers.UpdateEdgeFlow(drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);
                 await Task.Delay((int)Delay.VeryTiny);
-                #endregion
             }
             await DetermineMaxFlow();
         }
 
         private async Task DetermineMaxFlow()
         {
-            var path = Bfs(_source, _sink);
+            var path = Bfs(start, target!);
 
             while (path != null && path.Count > 0)
             {
                 await ChangeFlowInCurrentPath(path);
                 Paths.Add(path);
-                path = Bfs(_source, _sink);
+                path = Bfs(start, target!);
             }
         }
 
@@ -74,7 +64,7 @@ namespace Graph_Constructor.Algorithms
                 if (current.Id == target.Id)
                     return GetPath(current);
 
-                foreach (var edge in _graph.AdjacencyList[current])
+                foreach (var edge in graph.AdjacencyList[current])
                 {
                     var next = edge.To;
                     if (edge.Cost - Residual[edge] > 0 && !discovered.Contains(next))
@@ -84,7 +74,7 @@ namespace Graph_Constructor.Algorithms
                     }
                 }
             }
-            return null;
+            return null!;
         }
 
         private List<Edge> GetPath(Vertex node)
@@ -93,7 +83,7 @@ namespace Graph_Constructor.Algorithms
             var current = node;
             while (current.TraverseParent != null)
             {
-                var edge = _graph.GetEdge(current.TraverseParent, current);
+                var edge = graph.GetEdge(current.TraverseParent, current);
                 path.Insert(0, edge);
                 current = current.TraverseParent;
             }
@@ -102,7 +92,7 @@ namespace Graph_Constructor.Algorithms
 
         async Task ChangeFlowInCurrentPath(List<Edge> path)
         {
-            DrawingHelpers.ClearCanvasFromAnimationEffects(_drawingArea);
+            DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
 
             int minFlow = int.MaxValue;
             foreach (var edge in path)
@@ -111,11 +101,11 @@ namespace Graph_Constructor.Algorithms
                 if (min < minFlow)
                     minFlow = min;
                 #region animation
-                DrawingHelpers.MarkVertex(_drawingArea, edge.From, Colors.VisitedVertex);
+                DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.VisitedVertex);
                 await Task.Delay((int)Delay.VeryTiny);
-                DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
+                DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                 await Task.Delay((int)Delay.VeryTiny);
-                DrawingHelpers.MarkVertex(_drawingArea, edge.To, Colors.VisitedVertex);
+                DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
                 await Task.Delay((int)Delay.VeryTiny);
                 #endregion
             }
@@ -124,11 +114,32 @@ namespace Graph_Constructor.Algorithms
             {
                 Residual[edge] += minFlow;
                 #region animation
-                DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, Residual[edge]);
+                DrawingHelpers.UpdateEdgeFlow(drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, Residual[edge]);
                 await Task.Delay((int)Delay.VeryTiny);
                 #endregion
             }
             MaxFlow += minFlow;
+        }
+
+        public override AlgoLog GetResults()
+        {
+            var title = $"The max flow {start.Id} to {target!.Id} is {MaxFlow}\n";
+            var details = $"All steps are below:\n";
+            AlgoLog log = new AlgoLog(title, details);
+
+            int index = 0;
+            foreach (var path in Paths)
+            {
+                var vertices = path.Select(edge => edge.To.Id).ToList();
+                vertices.Insert(0, 1);
+                log.AddMoreDetails(vertices, $"min = {StepsMinFlow[index++]}");
+            }
+            return log;
+        }
+
+        public override void BindViewProperties(params Control[] controls)
+        {
+            return;
         }
     }
 }

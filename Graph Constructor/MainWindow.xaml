@@ -204,13 +204,13 @@
                     <Slider Maximum="100" Width="200" TickPlacement="BottomRight" TickFrequency="5"/>
                 </DockPanel>
             </StackPanel>
-            <StackPanel Orientation="Horizontal"  Grid.Row="1" VerticalAlignment="Top">
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Content="DFS"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Content="BFS"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFord" Content="Ford"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Content="Bellman-Calaba"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Content="Ford-Fulkersson"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Content="Djikstra"/>
+            <StackPanel Orientation="Horizontal" x:Name="AlgorithmsPanel" Grid.Row="1" VerticalAlignment="Top">
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Tag="DFS" Content="DFS"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Tag="BFS" Content="BFS"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFord" Tag="Ford" Content="Ford"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Tag="BellmanCalaba" Content="Bellman-Calaba"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Tag="FordFulkersson" Content="Ford-Fulkersson"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Tag="Djikstra" Content="Djikstra"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunSpanningTree" Content="Spanning Tree"/>
             </StackPanel>
         </Grid>
@@ -274,7 +274,8 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Logs" FontFamily="Consolas italic">
-                <TextBlock x:Name="AlgoLogs" FontSize="15" FontFamily="Consolas" Margin="5"/>
+                <StackPanel x:Name="AlgoLogs" Margin="5">
+                </StackPanel>
             </TabItem>
         </TabControl>
     </Grid>

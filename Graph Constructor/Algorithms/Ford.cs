@@ -7,13 +7,8 @@ using System.Windows.Controls;
 
 namespace Graph_Constructor.Algorithms
 {
-    internal class Ford
+    internal class Ford : Algorithm
     {
-        private readonly Graph _graph;
-        private readonly Vertex _from;
-        private readonly Vertex _target;
-        private readonly Canvas _drawingArea;
-
         //etichetele
         public Dictionary<Vertex, Tag> Tags { get; set; }
         public List<List<Vertex>> Paths { get; set; }
@@ -29,17 +24,14 @@ namespace Graph_Constructor.Algorithms
             }
         }
 
-        public Ford(Graph graph, Canvas drawingArea, Vertex from, Vertex target)
+        public Ford(Graph graph, Canvas drawingArea, Vertex start, Vertex target)
+            : base(graph, drawingArea, start, target)
         {
-            _from = from;
-            _target = target;
-            _graph = graph;
-            _drawingArea = drawingArea;
             Tags = new Dictionary<Vertex, Tag>();
             Paths = new List<List<Vertex>>();
         }
 
-        public async Task Init()
+        public override async Task Execute()
         {
             InitializeTags();
             Tags = await DetermineTags();
@@ -50,12 +42,12 @@ namespace Graph_Constructor.Algorithms
 
         void InitializeTags()
         {
-            foreach (var vertex in _graph.GetAllVertices())
+            foreach (var vertex in graph.GetAllVertices())
             {
                 Tag tag = new Tag(vertex);
-                if (vertex.Id == _from.Id)
+                if (vertex.Id == start.Id)
                     tag.Cost = 0;
-                else tag.Cost = int.MinValue/2;
+                else tag.Cost = int.MinValue / 2;
                 Tags.Add(vertex, tag);
             }
         }
@@ -65,7 +57,7 @@ namespace Graph_Constructor.Algorithms
             Dictionary<Vertex, Tag> tags = Tags;
             Dictionary<Edge, bool> diffInequality = new Dictionary<Edge, bool>();
             int diff = 0;
-            var edges = _graph.GetAllEdges();
+            var edges = graph.GetAllEdges();
             foreach (var edge in edges)
                 diffInequality.Add(edge, true);
 
@@ -76,13 +68,13 @@ namespace Graph_Constructor.Algorithms
                     Tag hj = Tags[edge.To];
                     Tag hi = Tags[edge.From];
                     diff = hj.Cost - hi.Cost;
-                    DrawingHelpers.MarkVertex(_drawingArea, edge.From, Colors.DoneVertex);
-                    DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
-                    DrawingHelpers.MarkVertex(_drawingArea, edge.To, Colors.VisitedVertex);
+                    DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DoneVertex);
+                    DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
+                    DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
                     await Task.Delay((int)Delay.VeryTiny);
-                    DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.DefaultEdgeColor);
-                    DrawingHelpers.MarkVertex(_drawingArea, edge.To, Colors.DefaultVertexColor);
-                    DrawingHelpers.MarkVertex(_drawingArea, edge.From, Colors.DefaultVertexColor);
+                    DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
+                    DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.DefaultVertexColor);
+                    DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DefaultVertexColor);
                     if (diff < edge.Cost)
                         hj.Cost = hi.Cost + edge.Cost;
                     if (diff == edge.Cost)
@@ -100,8 +92,8 @@ namespace Graph_Constructor.Algorithms
         {
             HashSet<Vertex> visited = new HashSet<Vertex>();
             List<Vertex> path = new List<Vertex>();
-            path.Insert(0, _target);
-            GetPathsUtil(_target, _from, visited, path);
+            path.Insert(0, target!);
+            GetPathsUtil(target!, start, visited, path);
         }
 
         void GetPathsUtil(Vertex start, Vertex target, HashSet<Vertex> visited, List<Vertex> localPath)
@@ -131,23 +123,38 @@ namespace Graph_Constructor.Algorithms
 
         async Task HighlightPathsOnCanvas()
         {
-            DrawingHelpers.ClearCanvasFromAnimationEffects(_drawingArea);
-            Vertex prevVertex = _from;
+            DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
+            Vertex prevVertex = start;
             foreach (var path in Paths)
             {
                 foreach (var vertex in path)
                 {
-                    if (vertex != _from)
+                    if (vertex != start)
                     {
-                        Edge edge = _graph.GetEdge(prevVertex, vertex);
-                        DrawingHelpers.MarkEdge(_drawingArea, edge, Colors.VisitedEdge);
+                        Edge edge = graph.GetEdge(prevVertex, vertex);
+                        DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         await Task.Delay((int)Delay.VeryTiny);
                     }
-                    DrawingHelpers.MarkVertex(_drawingArea, vertex, Colors.DoneVertex);
+                    DrawingHelpers.MarkVertex(drawingArea, vertex, Colors.DoneVertex);
                     await Task.Delay((int)Delay.VeryTiny);
                     prevVertex = vertex;
                 }
             }
+        }
+
+
+        public override AlgoLog GetResults()
+        {
+            var title = $"The min path length from {start.Id} to {target!.Id} is {Tags[target].Cost}\n";
+            var details = "All paths are:\n";
+            AlgoLog log = new AlgoLog(title, details);
+            Paths.ForEach(path => log.AddMoreDetails(path.Select(vertex => vertex.Id).ToList()));
+            return log;
+        }
+
+        public override void BindViewProperties(params Control[] controls)
+        {
+            return;
         }
     }
 }
