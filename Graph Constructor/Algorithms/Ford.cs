@@ -71,7 +71,7 @@ namespace Graph_Constructor.Algorithms
                     DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DoneVertex);
                     DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                     DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
-                    await Task.Delay((int)Delay.VeryTiny);
+                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                     DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.DefaultVertexColor);
                     DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DefaultVertexColor);
@@ -133,10 +133,10 @@ namespace Graph_Constructor.Algorithms
                     {
                         Edge edge = graph.GetEdge(prevVertex, vertex);
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                        await Task.Delay((int)Delay.VeryTiny);
+                        await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     }
                     DrawingHelpers.MarkVertex(drawingArea, vertex, Colors.DoneVertex);
-                    await Task.Delay((int)Delay.VeryTiny);
+                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     prevVertex = vertex;
                 }
             }

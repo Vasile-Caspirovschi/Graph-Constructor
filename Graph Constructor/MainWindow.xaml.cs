@@ -288,6 +288,13 @@ namespace Graph_Constructor
                 "FordFulkersson" => new FordFulkersson(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
                 _ => null!
             };
+
+            BindingOperations.SetBinding(algorithm, Algorithm.ExecutionSpeedProperty, new Binding("Value")
+            {
+                Source = ExecutionSpeedSlider,
+                Mode = BindingMode.OneWay
+            });
+
             algorithm.BindViewProperties(BellmanAlgoResultsMatrix, BellmanResultsVerticalHeader);
             await algorithm.Execute();
             AlgoLogs.Children.Add(algorithm.GetResults().GetLog());

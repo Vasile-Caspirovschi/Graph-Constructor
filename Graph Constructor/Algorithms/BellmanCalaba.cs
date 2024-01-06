@@ -47,7 +47,7 @@ namespace Graph_Constructor.Algorithms
             for (int i = 0; i < nOfVertices; i++)
             {
                 Vectors[0].Add(new MatrixCellValue(weightedMatrix[i, target!.Id - 1]));
-                await Task.Delay((int)Delay.VeryTiny / 2);
+                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
             }
 
             do
@@ -70,7 +70,7 @@ namespace Graph_Constructor.Algorithms
                     if (min == int.MaxValue)
                         min = 0;
                     vn.Add(new MatrixCellValue(min));
-                    await Task.Delay((int)Delay.VeryTiny / 2);
+                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                 }
 
                 lastVector = Vectors.Last();
@@ -101,7 +101,7 @@ namespace Graph_Constructor.Algorithms
                     DrawingHelpers.MarkVertex(drawingArea, end, Colors.VisitedVertex);
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                    await Task.Delay((int)Delay.VeryTiny);
+                    await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
                     DrawingHelpers.MarkVertex(drawingArea, end, Colors.DefaultVertexColor);
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
@@ -157,10 +157,10 @@ namespace Graph_Constructor.Algorithms
                     {
                         Edge edge = graph.GetEdge(prevVertex, vertex);
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                        await Task.Delay((int)Delay.VeryTiny);
+                        await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
                     }
                     DrawingHelpers.MarkVertex(drawingArea, vertex, Colors.DoneVertex);
-                    await Task.Delay((int)Delay.VeryTiny);
+                    await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
                     prevVertex = vertex;
                 }
             }

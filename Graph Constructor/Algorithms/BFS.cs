@@ -33,14 +33,14 @@ namespace Graph_Constructor.Algorithms
                 from = vertices.Peek();
                 Path.Add(from.Id);
                 DrawingHelpers.MarkVertex(drawingArea, from, Colors.VisitedVertex);
-                await Task.Delay((int)Delay.Tiny);
+                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                 foreach (Edge edge in graph.AdjacencyList[from])
                 {
                     if (!_visited.Contains(edge.To))
                     {
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
-                        await Task.Delay((int)Delay.VeryShort);
+                        await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                         vertices.Enqueue(edge.To);
                         _visited.Add(edge.To);

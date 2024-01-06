@@ -201,7 +201,7 @@
                 <Button x:Name="RunAlgorithm" Click="RunAlgorithm_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Run Algorithm " Content="{DynamicResource Run}"/>
                 <DockPanel VerticalAlignment="Center">
                     <Label DockPanel.Dock="Left" FontWeight="Bold">Speed:</Label>
-                    <Slider Maximum="100" Width="200" TickPlacement="BottomRight" TickFrequency="5"/>
+                    <Slider x:Name="ExecutionSpeedSlider" Foreground="Black" Minimum="1" Value="30" Maximum="100" Width="200" TickPlacement="BottomRight" IsSnapToTickEnabled="True" TickFrequency="10"/>
                 </DockPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" x:Name="AlgorithmsPanel" Grid.Row="1" VerticalAlignment="Top">

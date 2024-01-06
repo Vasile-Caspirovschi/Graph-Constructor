@@ -1,7 +1,6 @@
 ﻿using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -37,13 +36,13 @@ namespace Graph_Constructor.Algorithms
                 start = vertices.Peek();
                 hasNext = false;
                 DrawingHelpers.MarkVertex(drawingArea, start, Colors.VisitedVertex);
-                await Task.Delay((int)Delay.VeryShort);
+                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                 foreach (Edge edge in graph.AdjacencyList[start])
                 {
                     if (!_visited.Contains(edge.To))
                     {
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                        await Task.Delay((int)Delay.VeryShort);
+                        await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                         vertices.Push(edge.To);
                         _visited.Add(edge.To);
                         Path.Add(edge.To.Id);
