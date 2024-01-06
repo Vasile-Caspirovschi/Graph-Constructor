@@ -30,7 +30,7 @@ namespace Graph_Constructor.Algorithms
             {
                 Residual.Add(edge, 0);
                 DrawingHelpers.UpdateEdgeFlow(drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);
-                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
             }
             await DetermineMaxFlow();
         }
@@ -102,11 +102,11 @@ namespace Graph_Constructor.Algorithms
                     minFlow = min;
                 #region animation
                 DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.VisitedVertex);
-                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
-                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 #endregion
             }
             StepsMinFlow.Add(minFlow);
@@ -115,7 +115,7 @@ namespace Graph_Constructor.Algorithms
                 Residual[edge] += minFlow;
                 #region animation
                 DrawingHelpers.UpdateEdgeFlow(drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, Residual[edge]);
-                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 #endregion
             }
             MaxFlow += minFlow;

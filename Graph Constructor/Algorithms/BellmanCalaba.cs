@@ -47,7 +47,7 @@ namespace Graph_Constructor.Algorithms
             for (int i = 0; i < nOfVertices; i++)
             {
                 Vectors[0].Add(new MatrixCellValue(weightedMatrix[i, target!.Id - 1]));
-                await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                await Task.Delay(SetExecutionDelay((int)Delay.Short));
             }
 
             do
@@ -70,7 +70,7 @@ namespace Graph_Constructor.Algorithms
                     if (min == int.MaxValue)
                         min = 0;
                     vn.Add(new MatrixCellValue(min));
-                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                    await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 }
 
                 lastVector = Vectors.Last();
@@ -92,13 +92,14 @@ namespace Graph_Constructor.Algorithms
             {
                 Vertex start = graph.GetVertexById(i + 1);
                 DrawingHelpers.MarkVertex(drawingArea, start, Colors.DoneVertex);
-
+                await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
                 for (int j = 0; j < lastVector.Length; j++)
                 {
                     Vertex end = graph.GetVertexById(j + 1);
                     Edge edge = graph.GetEdge(start, end);
 
                     DrawingHelpers.MarkVertex(drawingArea, end, Colors.VisitedVertex);
+                    await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                     await Task.Delay(SetExecutionDelay((int)Delay.Tiny));

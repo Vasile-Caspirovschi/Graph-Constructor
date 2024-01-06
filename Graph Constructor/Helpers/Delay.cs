@@ -2,9 +2,9 @@
 {
     public enum Delay
     {
-        VeryTiny = 100,
-        Tiny = 250,
-        Short = 400,
+        VeryTiny = 150,
+        Tiny = 200,
+        Short = 300,
         Medium = 500,
         MediumLong = 750,
         Long = 1000,
