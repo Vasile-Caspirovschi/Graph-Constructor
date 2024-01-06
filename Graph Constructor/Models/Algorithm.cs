@@ -1,10 +1,9 @@
 ﻿using Graph_Constructor.Helpers;
-using Graph_Constructor.Models;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Graph_Constructor.Algorithms
+namespace Graph_Constructor.Models
 {
     public abstract class Algorithm : DependencyObject
     {
