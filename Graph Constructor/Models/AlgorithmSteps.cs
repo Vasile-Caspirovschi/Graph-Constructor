@@ -35,17 +35,24 @@ namespace Graph_Constructor.Models
         private void ShowStep(int index)
         {
             var currentStep = this[index];
-            MarkElement(currentStep.MarkedElement, currentStep.MarkedColor);
+            if (currentStep.ActionBeforeMarking is not null)
+                currentStep.ActionBeforeMarking(_drawingArea);
+            foreach (var markedElement in currentStep.MarkedElements)
+                MarkElement(markedElement.Key, markedElement.Value);
         }
 
         private void MarkElement(IMarkable element, Color colorToMark)
         {
-            this[_index].CurrentColor = colorToMark;
-
             if (element.IsVertex())
                 DrawingHelpers.MarkVertex(_drawingArea, (element as Vertex)!, colorToMark);
+            if (element.IsWeightedEdge())
+            {
+                var edge = element as Edge;
+                DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);
+            }
             else
                 DrawingHelpers.MarkEdge(_drawingArea, (element as Edge)!, colorToMark);
+
         }
     }
 }

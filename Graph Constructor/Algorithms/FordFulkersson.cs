@@ -14,23 +14,24 @@ namespace Graph_Constructor.Algorithms
         public Dictionary<Edge, int> Residual { get; set; }
         public int MaxFlow { get; set; }
         public List<int> StepsMinFlow { get; set; }
-        public List<Edge> MinCutEdges { get; set; }
-
+        public AlgorithmSteps Steps { get; set; }
         public FordFulkersson(Graph graph, Canvas drawingArea, Vertex start, Vertex? target) : base(graph, drawingArea, start, target)
         {
             Paths = new List<List<Edge>>();
             Residual = new Dictionary<Edge, int>();
             StepsMinFlow = new List<int>();
-            MinCutEdges = new List<Edge>();
+            Steps = new AlgorithmSteps(drawingArea);
         }
 
         public override async Task Execute()
         {
+            var step = new AlgorithmStep();
             foreach (Edge edge in graph.GetAllEdges())
             {
                 Residual.Add(edge, 0);
                 DrawingHelpers.UpdateEdgeFlow(drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);
                 await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
+                step.AddMarkedElement(edge, Colors.DefaultEdgeColor);
             }
             await DetermineMaxFlow();
         }
@@ -92,31 +93,35 @@ namespace Graph_Constructor.Algorithms
 
         async Task ChangeFlowInCurrentPath(List<Edge> path)
         {
+            Steps.Add(new AlgorithmStep(DrawingHelpers.ClearCanvasFromAnimationEffects));
             DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
-
             int minFlow = int.MaxValue;
             foreach (var edge in path)
             {
                 int min = edge.Cost - Residual[edge];
                 if (min < minFlow)
                     minFlow = min;
-                #region animation
                 DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.VisitedVertex);
+                Steps.Add(new AlgorithmStep()
+                    .AddMarkedElement(edge.From, Colors.VisitedVertex));
                 await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
+                Steps.Add(new AlgorithmStep()
+                    .AddMarkedElement(edge, Colors.VisitedEdge));
                 await Task.Delay(SetExecutionDelay((int)Delay.Short));
                 DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
+                Steps.Add(new AlgorithmStep()
+                    .AddMarkedElement(edge.To, Colors.VisitedVertex));
                 await Task.Delay(SetExecutionDelay((int)Delay.Short));
-                #endregion
             }
             StepsMinFlow.Add(minFlow);
             foreach (var edge in path)
             {
                 Residual[edge] += minFlow;
-                #region animation
                 DrawingHelpers.UpdateEdgeFlow(drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, Residual[edge]);
+                Steps.Add(new AlgorithmStep()
+                    .AddMarkedElement(edge, Colors.VisitedEdge));
                 await Task.Delay(SetExecutionDelay((int)Delay.Short));
-                #endregion
             }
             MaxFlow += minFlow;
         }
@@ -144,7 +149,7 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgorithmSteps GetSolvingSteps()
         {
-            throw new NotImplementedException();
+            return Steps;
         }
     }
 }

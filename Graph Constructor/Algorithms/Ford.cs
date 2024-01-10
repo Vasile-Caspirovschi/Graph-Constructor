@@ -12,6 +12,8 @@ namespace Graph_Constructor.Algorithms
         //etichetele
         public Dictionary<Vertex, Tag> Tags { get; set; }
         public List<List<Vertex>> Paths { get; set; }
+        public AlgorithmSteps Steps { get; set; }
+
         public class Tag
         {
             public Vertex Vertex { get; set; }
@@ -29,12 +31,13 @@ namespace Graph_Constructor.Algorithms
         {
             Tags = new Dictionary<Vertex, Tag>();
             Paths = new List<List<Vertex>>();
+            Steps = new AlgorithmSteps(drawingArea);
         }
 
         public override async Task Execute()
         {
             InitializeTags();
-            Tags = await DetermineTags();
+            await DetermineTags();
             GetPaths();
             RemoveDuplicatePaths();
             await HighlightPathsOnCanvas();
@@ -52,9 +55,8 @@ namespace Graph_Constructor.Algorithms
             }
         }
 
-        async Task<Dictionary<Vertex, Tag>> DetermineTags()
+        async Task DetermineTags()
         {
-            Dictionary<Vertex, Tag> tags = Tags;
             Dictionary<Edge, bool> diffInequality = new Dictionary<Edge, bool>();
             int diff = 0;
             var edges = graph.GetAllEdges();
@@ -68,13 +70,21 @@ namespace Graph_Constructor.Algorithms
                     Tag hj = Tags[edge.To];
                     Tag hi = Tags[edge.From];
                     diff = hj.Cost - hi.Cost;
-                    DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DoneVertex);
+                    DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.VisitedVertex);
                     DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                     DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
+                    Steps.Add(new AlgorithmStep()
+                        .AddMarkedElement(edge.From, Colors.VisitedVertex)
+                        .AddMarkedElement(edge, Colors.VisitedEdge)
+                        .AddMarkedElement(edge.To, Colors.VisitedVertex));
                     await Task.Delay(SetExecutionDelay((int)Delay.Medium));
-                    DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                     DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.DefaultVertexColor);
+                    DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                     DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DefaultVertexColor);
+                    Steps.Add(new AlgorithmStep()
+                        .AddMarkedElement(edge.From, Colors.DefaultVertexColor)
+                        .AddMarkedElement(edge, Colors.DefaultEdgeColor)
+                        .AddMarkedElement(edge.To, Colors.DefaultVertexColor));
                     if (diff < edge.Cost)
                         hj.Cost = hi.Cost + edge.Cost;
                     if (diff == edge.Cost)
@@ -85,7 +95,6 @@ namespace Graph_Constructor.Algorithms
                     if (diff > edge.Cost) diffInequality[edge] = false;
                 }
             }
-            return tags;
         }
 
         void GetPaths()
@@ -124,9 +133,11 @@ namespace Graph_Constructor.Algorithms
         async Task HighlightPathsOnCanvas()
         {
             DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
+            Steps.Add(new AlgorithmStep(DrawingHelpers.ClearCanvasFromAnimationEffects));
             Vertex prevVertex = start;
             foreach (var path in Paths)
             {
+                var step = new AlgorithmStep();
                 foreach (var vertex in path)
                 {
                     if (vertex != start)
@@ -134,11 +145,14 @@ namespace Graph_Constructor.Algorithms
                         Edge edge = graph.GetEdge(prevVertex, vertex);
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                        step.AddMarkedElement(edge, Colors.VisitedEdge);
                     }
                     DrawingHelpers.MarkVertex(drawingArea, vertex, Colors.DoneVertex);
                     await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                    step.AddMarkedElement(vertex, Colors.DoneVertex);
                     prevVertex = vertex;
                 }
+                Steps.Add(step);
             }
         }
 
@@ -159,7 +173,7 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgorithmSteps GetSolvingSteps()
         {
-            throw new System.NotImplementedException();
+            return Steps;
         }
     }
 }

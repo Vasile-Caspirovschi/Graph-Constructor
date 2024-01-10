@@ -39,7 +39,7 @@ namespace Graph_Constructor.Algorithms
                 if (!_visited.Contains(start) || foundUnvisitedVertex)
                 {
                     DrawingHelpers.MarkVertex(drawingArea, start, Colors.VisitedVertex);
-                    Steps.Add(new AlgorithmStep(start, Colors.VisitedVertex, Colors.DefaultEdgeColor));
+                    Steps.Add(new AlgorithmStep().AddMarkedElement(start, Colors.VisitedVertex));
                     await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     foundUnvisitedVertex = false;
                 }
@@ -48,7 +48,7 @@ namespace Graph_Constructor.Algorithms
                     if (!_visited.Contains(edge.To))
                     {
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                        Steps.Add(new AlgorithmStep(edge, Colors.VisitedEdge, Colors.DefaultEdgeColor));
+                        Steps.Add(new AlgorithmStep().AddMarkedElement(edge, Colors.VisitedEdge));
                         await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                         vertices.Push(edge.To);
                         _visited.Add(edge.To);
@@ -62,7 +62,7 @@ namespace Graph_Constructor.Algorithms
                 {
                     vertices.Pop();
                     DrawingHelpers.MarkVertex(drawingArea, start, Colors.DoneVertex);
-                    Steps.Add(new AlgorithmStep(start, Colors.DoneVertex, Colors.VisitedVertex));
+                    Steps.Add(new AlgorithmStep().AddMarkedElement(start, Colors.DoneVertex));
                 }
             }
         }

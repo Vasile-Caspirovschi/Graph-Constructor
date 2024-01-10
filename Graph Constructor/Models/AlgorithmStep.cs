@@ -1,23 +1,29 @@
 ﻿using Graph_Constructor.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Controls;
 
 namespace Graph_Constructor.Models
 {
     public class AlgorithmStep 
     {
-        public IMarkable MarkedElement { get; set; }
-        public Color MarkedColor { get; set; }
-        public Color CurrentColor { get; set; }
-        public AlgorithmStep(IMarkable markedElement, Color markedColor, Color currentColor)
+        public Dictionary<IMarkable, Color> MarkedElements { get; set; }
+        public Action<Canvas> ActionBeforeMarking { get; set; } = default!;
+        public AlgorithmStep()
         {
-            MarkedElement = markedElement;
-            MarkedColor = markedColor;
-            CurrentColor = currentColor;
+            MarkedElements = new Dictionary<IMarkable, Color>();
         }
 
-        public bool IsVertex()
+        public AlgorithmStep(Action<Canvas> actionBeforeMarking) : this()
         {
-            return MarkedElement is Vertex;
+            ActionBeforeMarking = actionBeforeMarking;
+        }
+
+        public AlgorithmStep AddMarkedElement(IMarkable element, Color color)
+        {
+            MarkedElements.Add(element, color);
+            return this;
         }
     }
 }

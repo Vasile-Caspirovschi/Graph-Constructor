@@ -301,7 +301,7 @@ namespace Graph_Constructor
             });
 
             algorithm.BindViewProperties(BellmanAlgoResultsMatrix, BellmanResultsVerticalHeader);
-             algorithm.Execute();
+            await algorithm.Execute();
             _algorithmSteps = algorithm.GetSolvingSteps();
             AlgoLogs.Children.Add(algorithm.GetResults().GetLog());
             _wasAlgoRunned = true;

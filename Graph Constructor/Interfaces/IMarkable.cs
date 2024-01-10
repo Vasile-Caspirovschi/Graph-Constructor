@@ -9,5 +9,6 @@ namespace Graph_Constructor.Interfaces
     public interface IMarkable
     {
         bool IsVertex();
+        bool IsWeightedEdge();
     }
 }

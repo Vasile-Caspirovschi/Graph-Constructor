@@ -16,6 +16,7 @@ namespace Graph_Constructor.Algorithms
         public Dictionary<Vertex, List<Vertex>> OutcomingVertices { get; set; }
         public List<List<Vertex>> Paths { get; set; }
         public int PathLength { get; set; }
+        public AlgorithmSteps Steps { get; set; }
 
         public BellmanCalaba(Graph graph, Canvas drawingArea, Vertex from, Vertex target) 
             : base(graph, drawingArea, from, target!)
@@ -24,6 +25,7 @@ namespace Graph_Constructor.Algorithms
             VectorsTitle = new ObservableCollection<string>();
             OutcomingVertices = new Dictionary<Vertex, List<Vertex>>();
             Paths = new List<List<Vertex>>();
+            Steps = new AlgorithmSteps(drawingArea);
         }
 
         public override async Task Execute()
@@ -97,15 +99,17 @@ namespace Graph_Constructor.Algorithms
                 {
                     Vertex end = graph.GetVertexById(j + 1);
                     Edge edge = graph.GetEdge(start, end);
-
-                    DrawingHelpers.MarkVertex(drawingArea, end, Colors.VisitedVertex);
-                    await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                    await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
-                    DrawingHelpers.MarkVertex(drawingArea, end, Colors.DefaultVertexColor);
+                    DrawingHelpers.MarkVertex(drawingArea, end, Colors.VisitedVertex);
+                    Steps.Add(new AlgorithmStep(DrawingHelpers.ClearCanvasFromAnimationEffects)
+                        .AddMarkedElement(start, Colors.DoneVertex)
+                        .AddMarkedElement(edge, Colors.VisitedEdge)
+                        .AddMarkedElement(end, Colors.VisitedVertex));
+                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
+                    DrawingHelpers.MarkVertex(drawingArea, end, Colors.DefaultVertexColor);
 
                     if (i == j || weightedMatrix[i, j] == int.MaxValue)
                         continue;
@@ -120,8 +124,10 @@ namespace Graph_Constructor.Algorithms
         void GetPaths()
         {
             HashSet<Vertex> visited = new HashSet<Vertex>();
-            List<Vertex> path = new List<Vertex>();
-            path.Add(start);
+            List<Vertex> path = new List<Vertex>
+            {
+                start
+            };
             GetPathsUtil(start, target!, visited, path);
         }
 
@@ -149,21 +155,26 @@ namespace Graph_Constructor.Algorithms
         async Task HighlightPathsOnCanvas()
         {
             DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
+            Steps.Add(new AlgorithmStep(DrawingHelpers.ClearCanvasFromAnimationEffects));
             Vertex prevVertex = start;
             foreach (var path in Paths)
             {
+                var step = new AlgorithmStep();
                 foreach (var vertex in path)
                 {
                     if (vertex != start)
                     {
                         Edge edge = graph.GetEdge(prevVertex, vertex);
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
-                        await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
+                        await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                        step.AddMarkedElement(edge, Colors.VisitedEdge);
                     }
                     DrawingHelpers.MarkVertex(drawingArea, vertex, Colors.DoneVertex);
-                    await Task.Delay(SetExecutionDelay((int)Delay.Tiny));
+                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                    step.AddMarkedElement(vertex, Colors.DoneVertex);
                     prevVertex = vertex;
                 }
+                Steps.Add(step);
             }
         }
 

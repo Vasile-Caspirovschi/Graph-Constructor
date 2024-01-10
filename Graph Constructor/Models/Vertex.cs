@@ -33,6 +33,11 @@ namespace Graph_Constructor.Models
             return true;
         }
 
+        public bool IsWeightedEdge()
+        {
+            return false;
+        }
+
         void OnPropertyChanged(string propertyName)
         {
             var handler = PropertyChanged;

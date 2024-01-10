@@ -10,11 +10,12 @@ namespace Graph_Constructor.Algorithms
     {
         private readonly HashSet<Vertex> _visited;
         public List<int> Path { get; set; }
-
+        public AlgorithmSteps Steps { get; set; }
         public BFS(Graph graph, Canvas drawingArea, Vertex from) : base(graph, drawingArea, from, null)
         {
             _visited = new HashSet<Vertex>();
             Path = new List<int>();
+            Steps = new AlgorithmSteps(drawingArea);
         }
 
         public override async Task Execute()
@@ -33,6 +34,7 @@ namespace Graph_Constructor.Algorithms
                 from = vertices.Peek();
                 Path.Add(from.Id);
                 DrawingHelpers.MarkVertex(drawingArea, from, Colors.VisitedVertex);
+                Steps.Add(new AlgorithmStep().AddMarkedElement(from, Colors.VisitedVertex));
                 await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                 foreach (Edge edge in graph.AdjacencyList[from])
                 {
@@ -40,7 +42,11 @@ namespace Graph_Constructor.Algorithms
                     {
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
+                        Steps.Add(new AlgorithmStep()
+                            .AddMarkedElement(edge.To, Colors.VisitedVertex)
+                            .AddMarkedElement(edge, Colors.VisitedEdge));
                         await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                        Steps.Add(new AlgorithmStep().AddMarkedElement(edge, Colors.DefaultEdgeColor));
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                         vertices.Enqueue(edge.To);
                         _visited.Add(edge.To);
@@ -48,6 +54,7 @@ namespace Graph_Constructor.Algorithms
                 }
                 vertices.Dequeue();
                 DrawingHelpers.MarkVertex(drawingArea, from, Colors.DoneVertex);
+                Steps.Add(new AlgorithmStep().AddMarkedElement(from, Colors.DoneVertex));
             }
         }
 
@@ -63,7 +70,7 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgorithmSteps GetSolvingSteps()
         {
-            throw new System.NotImplementedException();
+            return Steps;
         }
     }
 }

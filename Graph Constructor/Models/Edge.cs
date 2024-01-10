@@ -8,6 +8,7 @@ namespace Graph_Constructor.Models
         Vertex _from;
         Vertex _to;
         int _cost = 1;
+        bool isWeighted;
 
         public Edge(Vertex from, Vertex to)
         {
@@ -20,6 +21,7 @@ namespace Graph_Constructor.Models
             _from = from;
             _to = to;
             _cost = cost;
+            isWeighted = true;
         }
 
         public Vertex From { get { return _from; } }
@@ -29,6 +31,11 @@ namespace Graph_Constructor.Models
         public bool IsVertex()
         {
             return false;
+        }
+
+        public bool IsWeightedEdge()
+        {
+            return isWeighted;
         }
 
         public override string ToString()
