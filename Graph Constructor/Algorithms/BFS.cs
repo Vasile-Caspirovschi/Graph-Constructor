@@ -60,5 +60,10 @@ namespace Graph_Constructor.Algorithms
         {
             return;
         }
+
+        public override AlgorithmSteps GetSolvingSteps()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

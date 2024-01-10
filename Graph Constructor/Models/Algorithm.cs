@@ -1,4 +1,5 @@
 ﻿using Graph_Constructor.Helpers;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,7 @@ namespace Graph_Constructor.Models
         public abstract Task Execute();
         public abstract AlgoLog GetResults();
         public abstract void BindViewProperties(params Control[] viewControls);
+        public abstract AlgorithmSteps GetSolvingSteps();
 
         public static readonly DependencyProperty ExecutionSpeedProperty =
             DependencyProperty.Register("ExecutionSpeed", typeof(double), typeof(Algorithm), new PropertyMetadata(1.0));

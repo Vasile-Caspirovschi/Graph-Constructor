@@ -1,10 +1,11 @@
 ﻿
+using Graph_Constructor.Interfaces;
 using System.ComponentModel;
 using System.Windows;
 
 namespace Graph_Constructor.Models
 {
-    public class Vertex : INotifyPropertyChanged
+    public class Vertex : INotifyPropertyChanged, IMarkable
     {
         private const int DIAMETER = 30;
         private int _id;
@@ -26,6 +27,12 @@ namespace Graph_Constructor.Models
         public Point Location { get { return _location; } }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public bool IsVertex()
+        {
+            return true;
+        }
+
         void OnPropertyChanged(string propertyName)
         {
             var handler = PropertyChanged;

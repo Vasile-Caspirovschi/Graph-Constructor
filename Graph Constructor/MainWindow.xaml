@@ -181,6 +181,8 @@
         <PathGeometry x:Key="Erase" Figures="M 500 0C 224 0 0 224 0 500C 0 776 224 1000 500 1000C 776 1000 1000 776 1000 500C 1000 224 776 0 500 0C 500 0 500 0 500 0 M 667 202C 667 202 844 379 844 379C 878 413 878 469 844 503C 844 503 561 786 561 786C 554 793 545 797 535 797C 535 797 323 797 323 797C 313 797 303 793 296 786C 296 786 190 680 190 680C 156 646 156 590 190 556C 190 556 544 202 544 202C 561 186 583 177 605 177C 628 177 650 186 667 202C 667 202 667 202 667 202M 243 609C 238 614 238 621 243 627C 243 627 338 722 338 722C 338 722 519 722 519 722C 519 722 615 628 615 628C 615 628 420 434 420 434C 420 434 243 609 243 609"/>
         <PathGeometry x:Key="Weighted" Figures="M12,3A4,4 0 0,1 16,7C16,7.73 15.81,8.41 15.46,9H18C18.95,9 19.75,9.67 19.95,10.56C21.96,18.57 22,18.78 22,19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19C2,18.78 2.04,18.57 4.05,10.56C4.25,9.67 5.05,9 6,9H8.54C8.19,8.41 8,7.73 8,7A4,4 0 0,1 12,3M12,5A2,2 0 0,0 10,7A2,2 0 0,0 12,9A2,2 0 0,0 14,7A2,2 0 0,0 12,5M6,11V19H8V16.5L9,17.5V19H11V17L9,15L11,13V11H9V12.5L8,13.5V11H6M15,11C13.89,11 13,11.89 13,13V17C13,18.11 13.89,19 15,19H18V14H16V17H15V13H18V11H15Z"/>
         <PathGeometry x:Key="Directed" Figures="M14,14.5V12H10V15H8V11A1,1 0 0,1 9,10H14V7.5L17.5,11M21.71,11.29L12.71,2.29H12.7C12.31,1.9 11.68,1.9 11.29,2.29L2.29,11.29C1.9,11.68 1.9,12.32 2.29,12.71L11.29,21.71C11.68,22.09 12.31,22.1 12.71,21.71L21.71,12.71C22.1,12.32 22.1,11.68 21.71,11.29Z"/>
+        <PathGeometry x:Key="Next" Figures="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M8,8V16L13,12M14,8V16H16V8"/>
+        <PathGeometry x:Key="Previous" Figures="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4C7.59,4 4,7.59 4,12C4,16.41 7.59,20 12,20C16.41,20 20,16.41 20,12C20,7.59 16.41,4 12,4M16,8V16L11,12M10,8V16H8V8"/>
     </Window.Resources>
     <Grid  Name="grid">
         <Grid.ColumnDefinitions>
@@ -233,14 +235,18 @@
                     <Border.Effect>
                         <BlurEffect Radius="5" KernelType="Gaussian"/>
                     </Border.Effect>
-                <Canvas x:Name="DrawingArea" IsEnabled="False" Margin="1"  MouseRightButtonDown="DeleteGraphElement_Click" MouseMove="MoveVertexOnCanvas" MouseLeftButtonDown="DrawGraphElement_Click" ClipToBounds="True"/>
+                <Canvas x:Name="DrawingArea" IsEnabled="False" Margin="1" MouseRightButtonDown="DeleteGraphElement_Click" MouseMove="MoveVertexOnCanvas" MouseLeftButtonDown="DrawGraphElement_Click" ClipToBounds="True"/>
             </Border>
                 </Grid>
             <StackPanel Orientation="Horizontal" Grid.Row="2">
                 <ToggleButton x:Name="ShowGrid" Style="{StaticResource iToggleButtonStyle}" IsChecked="True" Tag="Show Grid " Content="{DynamicResource Grid}"/>
                 <ToggleButton Name="MoveMode" Style="{StaticResource iToggleButtonStyle}" Tag="Move vertices " Content="{DynamicResource Move}"/>
                 <Button x:Name="ClearCanvas" Click="ClearCanvas_Click" Style="{StaticResource ButtonStyle}" Tag="Clear " Content="{DynamicResource Erase}"/>
-            </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Name="GetPrevious" Click="GetPrevious_Click" Style="{StaticResource ButtonStyle}" Content="{DynamicResource Previous}"/>
+                    <Button Name="GetNext" Click="GetNext_Click" Style="{StaticResource ButtonStyle}" Content="{DynamicResource Next}"/>
+                </StackPanel>
+               </StackPanel>
         </Grid>
         <TabControl Grid.Row="1" Grid.Column="1" Margin="0 0 20 25">
             <TabItem Header="Adjacency matrix" FontFamily="Consolas italic" IsSelected="True">

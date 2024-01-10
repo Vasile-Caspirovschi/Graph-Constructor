@@ -7,6 +7,7 @@ namespace Graph_Constructor.Helpers
     {
         public static Color
             DefaultVertexColor = ColorTranslator.FromHtml("#eee489"),
+            CurrentVertexColor = ColorTranslator.FromHtml("#98a0a1"),
             VisitedEdge = ColorTranslator.FromHtml("#b12e25"),
             //VisitedEdge = ColorTranslator.FromHtml("#edb922"),
             DefaultEdgeColor = ColorTranslator.FromHtml("#8e8e8e"),

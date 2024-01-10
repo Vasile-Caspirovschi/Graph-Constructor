@@ -1,7 +1,9 @@
-﻿namespace Graph_Constructor.Models
+﻿using Graph_Constructor.Interfaces;
+
+namespace Graph_Constructor.Models
 {
 
-    public class Edge
+    public class Edge : IMarkable
     {
         Vertex _from;
         Vertex _to;
@@ -23,6 +25,11 @@
         public Vertex From { get { return _from; } }
         public Vertex To { get { return _to; } }
         public int Cost { get => _cost; set => _cost = value; }
+
+        public bool IsVertex()
+        {
+            return false;
+        }
 
         public override string ToString()
         {

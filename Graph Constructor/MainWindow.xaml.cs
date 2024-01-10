@@ -24,6 +24,7 @@ namespace Graph_Constructor
         static int _vertexId = 0;
         bool _isWeightedGraph = false;
         bool _isDirectedGraph = true;
+        bool _isAnimation = false;
         public ObservableCollection<Vertex> Vertices { get; set; }
         public ObservableCollection<Edge> Edges { get; set; }
         private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix;
@@ -38,6 +39,7 @@ namespace Graph_Constructor
         private Grid? _currentSelectedVertex;
         private Line _tempLineOnMouseMove;
         private bool _wasAlgoRunned;
+        private AlgorithmSteps _algorithmSteps;
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public MainWindow()
@@ -278,7 +280,10 @@ namespace Graph_Constructor
             if (!(int.TryParse(StartVertex.Text, out start) && start > 0))
                 return;
             var selectedAlgorithm = AlgorithmsPanel.Children.OfType<RadioButton>()
-                 .First(r => r.IsChecked.HasValue && r.IsChecked.Value);
+                 .FirstOrDefault(r => r.IsChecked.HasValue && r.IsChecked.Value);
+            if (selectedAlgorithm is null)
+                return;
+
             Algorithm algorithm = selectedAlgorithm.Tag switch
             {
                 "DFS" => new DFS(_graph, DrawingArea, _graph.GetVertexById(start)),
@@ -296,22 +301,19 @@ namespace Graph_Constructor
             });
 
             algorithm.BindViewProperties(BellmanAlgoResultsMatrix, BellmanResultsVerticalHeader);
-            await algorithm.Execute();
+             algorithm.Execute();
+            _algorithmSteps = algorithm.GetSolvingSteps();
             AlgoLogs.Children.Add(algorithm.GetResults().GetLog());
             _wasAlgoRunned = true;
+            _isAnimation = true;
         }
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)
         {
             if (_wasAlgoRunned)
             {
-                DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
-                DrawingHelpers.ClearEdgesFlow(DrawingArea, _graph);
+                ClearAnimation();
                 _wasAlgoRunned = false;
-                BellmanAlgoResultsMatrix.ItemsSource = null;
-                BellmanAlgoResultsMatrix.Items.Clear();
-                BellmanResultsVerticalHeader.ItemsSource = null;
-                BellmanResultsVerticalHeader.Items.Clear();
             }
             else
             {
@@ -330,6 +332,17 @@ namespace Graph_Constructor
                 _vertexId = 0;
             }
 
+        }
+
+        private void ClearAnimation()
+        {
+            DrawingHelpers.ClearCanvasFromAnimationEffects(DrawingArea);
+            DrawingHelpers.ClearEdgesFlow(DrawingArea, _graph);
+            BellmanAlgoResultsMatrix.ItemsSource = null;
+            BellmanAlgoResultsMatrix.Items.Clear();
+            BellmanResultsVerticalHeader.ItemsSource = null;
+            BellmanResultsVerticalHeader.Items.Clear();
+            _isAnimation = false;
         }
 
         private void SetCanvasType_Click(object sender, RoutedEventArgs e)
@@ -368,7 +381,7 @@ namespace Graph_Constructor
         {
             TextBox textBox = (TextBox)sender;
             textBox.CaptureMouse();
-            string[] vertices = textBox.Tag.ToString().Split(" ");
+            string[] vertices = textBox.Tag.ToString()!.Split(" ");
             _previousSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, vertices[0]);
             _currentSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, vertices[1]);
             DrawingHelpers.HighlightSelection(_currentSelectedVertex);
@@ -423,6 +436,24 @@ namespace Graph_Constructor
         {
             DrawingHelpers.UnHighlightSelection(_currentSelectedVertex);
             DrawingHelpers.UnHighlightSelection(_previousSelectedVertex);
+        }
+
+        private void GetPrevious_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_wasAlgoRunned)
+                return;
+            if (_isAnimation)
+                ClearAnimation();
+            _algorithmSteps.ShowPreviousStep();
+        }
+
+        private void GetNext_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_wasAlgoRunned)
+                return;
+            if (_isAnimation)
+                ClearAnimation();
+            _algorithmSteps.ShowNextStep();
         }
     }
 }

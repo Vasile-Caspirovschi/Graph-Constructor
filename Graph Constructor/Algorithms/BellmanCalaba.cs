@@ -181,5 +181,10 @@ namespace Graph_Constructor.Algorithms
             ((ItemsControl)viewControls[0]).ItemsSource = Vectors;
             ((ItemsControl)viewControls[1]).ItemsSource = VectorsTitle;
         }
+
+        public override AlgorithmSteps GetSolvingSteps()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
