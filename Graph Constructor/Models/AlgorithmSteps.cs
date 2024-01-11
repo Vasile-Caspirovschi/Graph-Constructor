@@ -44,7 +44,10 @@ namespace Graph_Constructor.Models
         private void MarkElement(IMarkable element, Color colorToMark)
         {
             if (element.IsVertex())
+            {
                 DrawingHelpers.MarkVertex(_drawingArea, (element as Vertex)!, colorToMark);
+                return;
+            }
             if (element.IsWeightedEdge())
             {
                 var edge = element as Edge;

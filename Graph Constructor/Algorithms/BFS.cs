@@ -38,19 +38,22 @@ namespace Graph_Constructor.Algorithms
                 await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                 foreach (Edge edge in graph.AdjacencyList[from])
                 {
+                    Edge? previousEdge = null;
                     if (!_visited.Contains(edge.To))
                     {
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                         DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
-                        Steps.Add(new AlgorithmStep()
+                        var step = new AlgorithmStep()
                             .AddMarkedElement(edge.To, Colors.VisitedVertex)
-                            .AddMarkedElement(edge, Colors.VisitedEdge));
+                            .AddMarkedElement(edge, Colors.VisitedEdge);
+                        if (previousEdge is not null) step.AddMarkedElement(previousEdge, Colors.DefaultEdgeColor);
+                        Steps.Add(step);
                         await Task.Delay(SetExecutionDelay((int)Delay.Medium));
-                        Steps.Add(new AlgorithmStep().AddMarkedElement(edge, Colors.DefaultEdgeColor));
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                         vertices.Enqueue(edge.To);
                         _visited.Add(edge.To);
                     }
+                    previousEdge = edge;
                 }
                 vertices.Dequeue();
                 DrawingHelpers.MarkVertex(drawingArea, from, Colors.DoneVertex);
