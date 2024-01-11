@@ -28,17 +28,20 @@ namespace Graph_Constructor.Algorithms
             Queue<Vertex> vertices = new Queue<Vertex>();
             Vertex from = start;
             vertices.Enqueue(from);
-            _visited.Add(from);
             while (vertices.Count != 0)
             {
                 from = vertices.Peek();
                 Path.Add(from.Id);
                 DrawingHelpers.MarkVertex(drawingArea, from, Colors.VisitedVertex);
-                Steps.Add(new AlgorithmStep().AddMarkedElement(from, Colors.VisitedVertex));
+                if (!_visited.Contains(from))
+                {
+                    Steps.Add(new AlgorithmStep().AddMarkedElement(from, Colors.VisitedVertex));
+                    _visited.Add(from);
+                }
                 await Task.Delay(SetExecutionDelay((int)Delay.Medium));
+                Edge? previousEdge = null;
                 foreach (Edge edge in graph.AdjacencyList[from])
                 {
-                    Edge? previousEdge = null;
                     if (!_visited.Contains(edge.To))
                     {
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
@@ -57,7 +60,9 @@ namespace Graph_Constructor.Algorithms
                 }
                 vertices.Dequeue();
                 DrawingHelpers.MarkVertex(drawingArea, from, Colors.DoneVertex);
-                Steps.Add(new AlgorithmStep().AddMarkedElement(from, Colors.DoneVertex));
+                var step1 = new AlgorithmStep().AddMarkedElement(from, Colors.DoneVertex);
+                if (previousEdge is not null) step1.AddMarkedElement(previousEdge, Colors.DefaultEdgeColor);
+                Steps.Add(step1);
             }
         }
 
