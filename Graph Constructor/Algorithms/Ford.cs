@@ -31,7 +31,7 @@ namespace Graph_Constructor.Algorithms
         {
             Tags = new Dictionary<Vertex, Tag>();
             Paths = new List<List<Vertex>>();
-            Steps = new AlgorithmSteps(drawingArea);
+            Steps = new AlgorithmSteps(drawingArea, "Ford");
         }
 
         public override async Task Execute()
@@ -50,7 +50,7 @@ namespace Graph_Constructor.Algorithms
                 Tag tag = new Tag(vertex);
                 if (vertex.Id == start.Id)
                     tag.Cost = 0;
-                else tag.Cost = int.MinValue / 2;
+                else tag.Cost = int.MaxValue;
                 Tags.Add(vertex, tag);
             }
         }
@@ -65,6 +65,7 @@ namespace Graph_Constructor.Algorithms
 
             while (diffInequality.Values.Any(greaterThan => greaterThan))
             {
+                Edge? previousEdge = null;
                 foreach (var edge in edges)
                 {
                     Tag hj = Tags[edge.To];
@@ -73,27 +74,35 @@ namespace Graph_Constructor.Algorithms
                     DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.VisitedVertex);
                     DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                     DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.VisitedVertex);
-                    Steps.Add(new AlgorithmStep()
-                        .AddMarkedElement(edge.From, Colors.VisitedVertex)
+                    AlgorithmStep step = new AlgorithmStep();
+                    if (previousEdge is not null)
+                        step.AddMarkedElement(new Vertex(previousEdge.From.Id), Colors.DefaultVertexColor)
+                            .AddMarkedElement(new Edge(previousEdge.From, previousEdge.To, previousEdge.Cost), Colors.DefaultEdgeColor)
+                            .AddMarkedElement(new Vertex(previousEdge.To.Id), Colors.DefaultVertexColor);
+                    step.AddMarkedElement(edge.From, Colors.VisitedVertex)
                         .AddMarkedElement(edge, Colors.VisitedEdge)
-                        .AddMarkedElement(edge.To, Colors.VisitedVertex));
+                        .AddMarkedElement(edge.To, Colors.VisitedVertex);
+                    Steps.Add(step);
                     await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     DrawingHelpers.MarkVertex(drawingArea, edge.To, Colors.DefaultVertexColor);
                     DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
                     DrawingHelpers.MarkVertex(drawingArea, edge.From, Colors.DefaultVertexColor);
-                    Steps.Add(new AlgorithmStep()
-                        .AddMarkedElement(edge.From, Colors.DefaultVertexColor)
-                        .AddMarkedElement(edge, Colors.DefaultEdgeColor)
-                        .AddMarkedElement(edge.To, Colors.DefaultVertexColor));
-                    if (diff < edge.Cost)
+
+                    if (diff > edge.Cost)
                         hj.Cost = hi.Cost + edge.Cost;
                     if (diff == edge.Cost)
                     {
                         hj.IncomingVertices.Add(edge.From);
                         diffInequality[edge] = false;
                     }
-                    if (diff > edge.Cost) diffInequality[edge] = false;
+                    if (diff < edge.Cost) diffInequality[edge] = false;
+                    previousEdge = edge;
                 }
+                if (previousEdge is not null)
+                    Steps.Add(new AlgorithmStep()
+                        .AddMarkedElement(new Vertex(previousEdge.From.Id), Colors.DefaultVertexColor)
+                        .AddMarkedElement(new Edge(previousEdge.From, previousEdge.To, previousEdge.Cost), Colors.DefaultEdgeColor)
+                        .AddMarkedElement(new Vertex(previousEdge.To.Id), Colors.DefaultVertexColor));
             }
         }
 
@@ -155,7 +164,6 @@ namespace Graph_Constructor.Algorithms
                 Steps.Add(step);
             }
         }
-
 
         public override AlgoLog GetResults()
         {

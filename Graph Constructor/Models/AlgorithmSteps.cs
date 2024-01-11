@@ -12,7 +12,9 @@ namespace Graph_Constructor.Models
         private readonly Canvas _drawingArea;
         private int _index;
 
-        public AlgorithmSteps(Canvas drawingArea)
+        public string AlgorithmName { get; set; } = "Algorithm";
+
+        public AlgorithmSteps(Canvas drawingArea, string algorithmName)
         {
             _drawingArea = drawingArea;
             _index = -1;
@@ -48,7 +50,7 @@ namespace Graph_Constructor.Models
                 DrawingHelpers.MarkVertex(_drawingArea, (element as Vertex)!, colorToMark);
                 return;
             }
-            if (element.IsWeightedEdge())
+            if (AlgorithmName == "FordFulkersson")
             {
                 var edge = element as Edge;
                 DrawingHelpers.UpdateEdgeFlow(_drawingArea, $"{edge.From.Id} {edge.To.Id}", edge, 0);

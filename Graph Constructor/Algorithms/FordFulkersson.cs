@@ -20,7 +20,7 @@ namespace Graph_Constructor.Algorithms
             Paths = new List<List<Edge>>();
             Residual = new Dictionary<Edge, int>();
             StepsMinFlow = new List<int>();
-            Steps = new AlgorithmSteps(drawingArea);
+            Steps = new AlgorithmSteps(drawingArea, "FordFulkersson");
         }
 
         public override async Task Execute()

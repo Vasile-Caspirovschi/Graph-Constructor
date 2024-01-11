@@ -25,7 +25,7 @@ namespace Graph_Constructor.Algorithms
             VectorsTitle = new ObservableCollection<string>();
             OutcomingVertices = new Dictionary<Vertex, List<Vertex>>();
             Paths = new List<List<Vertex>>();
-            Steps = new AlgorithmSteps(drawingArea);
+            Steps = new AlgorithmSteps(drawingArea, "BellmanCalaba");
         }
 
         public override async Task Execute()

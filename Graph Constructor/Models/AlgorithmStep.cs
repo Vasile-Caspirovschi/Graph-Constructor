@@ -6,7 +6,7 @@ using System.Windows.Controls;
 
 namespace Graph_Constructor.Models
 {
-    public class AlgorithmStep 
+    public class AlgorithmStep
     {
         public Dictionary<IMarkable, Color> MarkedElements { get; set; }
         public Action<Canvas> ActionBeforeMarking { get; set; } = default!;

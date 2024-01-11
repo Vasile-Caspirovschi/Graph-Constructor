@@ -16,7 +16,7 @@ namespace Graph_Constructor.Algorithms
         {
             _visited = new HashSet<Vertex>();
             Path = new List<int>();
-            Steps = new AlgorithmSteps(drawingArea);
+            Steps = new AlgorithmSteps(drawingArea, "DFS");
         }
 
         public override async Task Execute()

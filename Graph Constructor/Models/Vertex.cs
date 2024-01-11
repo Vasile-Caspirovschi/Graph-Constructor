@@ -17,6 +17,11 @@ namespace Graph_Constructor.Models
             _location.Y = location.Y - DIAMETER / 2;
         }
 
+        public Vertex(int id)
+        {
+            _id = id;
+        }
+
         public Vertex TraverseParent { get; set; }
 
         public int Id
