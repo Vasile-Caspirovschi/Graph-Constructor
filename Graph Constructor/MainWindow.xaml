@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:ab2d="clr-namespace:Ab2d.Controls;assembly=Ab2d.Controls.ZoomPanel"
         xmlns:converters="clr-namespace:Graph_Constructor.Convertes"
         mc:Ignorable="d"
-        Title="Graph Constructor" Height="500" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="800">
+        Title="Graph Constructor" Height="600" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="1000">
     <Window.Resources>
         <converters:MatrixCellValidator x:Key="MatrixCellValidator"/>
         <DataTemplate x:Key="MatrixCell">
@@ -149,19 +150,19 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style TargetType="Canvas">
+        <Style x:Key="GridCanvas" TargetType="Canvas">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding ElementName=ShowGrid, Path=IsChecked}" Value="True">
                     <Setter Property="Background">
                         <Setter.Value>
-                            <DrawingBrush TileMode="Tile" Viewport="20,20,20,20" ViewportUnits="Absolute">
+                            <DrawingBrush TileMode="Tile" Viewport="20 20 20 20" ViewportUnits="Absolute">
                                 <DrawingBrush.Drawing>
                                     <GeometryDrawing>
                                         <GeometryDrawing.Geometry>
                                             <RectangleGeometry Rect="0,0,100,100"/>
                                         </GeometryDrawing.Geometry>
                                         <GeometryDrawing.Pen>
-                                            <Pen Brush="Gray" Thickness="2"/>
+                                            <Pen Brush="#1e1e1e" Thickness="1"/>
                                         </GeometryDrawing.Pen>
                                     </GeometryDrawing>
                                 </DrawingBrush.Drawing>
@@ -183,6 +184,8 @@
         <PathGeometry x:Key="Directed" Figures="M14,14.5V12H10V15H8V11A1,1 0 0,1 9,10H14V7.5L17.5,11M21.71,11.29L12.71,2.29H12.7C12.31,1.9 11.68,1.9 11.29,2.29L2.29,11.29C1.9,11.68 1.9,12.32 2.29,12.71L11.29,21.71C11.68,22.09 12.31,22.1 12.71,21.71L21.71,12.71C22.1,12.32 22.1,11.68 21.71,11.29Z"/>
         <PathGeometry x:Key="Next" Figures="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M8,8V16L13,12M14,8V16H16V8"/>
         <PathGeometry x:Key="Previous" Figures="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4C7.59,4 4,7.59 4,12C4,16.41 7.59,20 12,20C16.41,20 20,16.41 20,12C20,7.59 16.41,4 12,4M16,8V16L11,12M10,8V16H8V8"/>
+        <PathGeometry x:Key="Navigation" Figures="M12 2L16 6H13V13.85L19.53 17.61L21 15.03L22.5 20.5L17 21.96L18.53 19.35L12 15.58L5.47 19.35L7 21.96L1.5 20.5L3 15.03L4.47 17.61L11 13.85V6H8L12 2M21 5H19V3H21V5M22 10V12H18V10H19V8H18V6H21V10H22Z"/>
+        <PathGeometry x:Key="Minus" Figures="M19,13H5V11H19V13Z"/>
     </Window.Resources>
     <Grid  Name="grid">
         <Grid.ColumnDefinitions>
@@ -217,26 +220,39 @@
             </StackPanel>
         </Grid>
         <Grid Margin="20 0" Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition MinHeight="250"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <TextBlock FontSize="12" FontFamily="Consolas italic" Margin="2 0 0 0" Text="Sandbox"/>
-            <Grid Grid.Row="1">
-                <Grid Panel.ZIndex="99" Name="GraphTypePopup">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="Select graph type" Margin="2" FontSize="16" FontFamily="Verdana" HorizontalAlignment="Center" />
-                        <Button x:Name="WeightedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Weighted Graph " Content="{DynamicResource Directed}"/>
-                        <Button x:Name="DirectedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Directed Graph " Content="{DynamicResource Weighted}"/>
-                    </StackPanel>
-                </Grid>
-                <Border BorderThickness="1" Name="GraphTypePopupBlurEffect" Background="White" CornerRadius="5 5 0 0" BorderBrush="Black">
-                    <Border.Effect>
-                        <BlurEffect Radius="5" KernelType="Gaussian"/>
-                    </Border.Effect>
-                <Canvas x:Name="DrawingArea" IsEnabled="False" Margin="1" MouseRightButtonDown="DeleteGraphElement_Click" MouseMove="MoveVertexOnCanvas" MouseLeftButtonDown="DrawGraphElement_Click" ClipToBounds="True"/>
-            </Border>
+            <Grid >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition MinHeight="250"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel>
+                    <TextBlock FontSize="16" VerticalAlignment="Center" FontFamily="Consolas italic" Margin="2 0 0 0" Text="Sandbox"/>
+                    <DockPanel HorizontalAlignment="Right">
+                        <ToggleButton x:Name="ShowKeybordNavigation" Margin="0 0 0 0" Style="{StaticResource iToggleButtonStyle}" Click="ShowKeybordNavigation_Click" IsChecked="True" Content="{DynamicResource Navigation}"/>
+                        <ab2d:ZoomController Background="Transparent" />
+                    </DockPanel>
+                </DockPanel>
+                <Grid Grid.Row="1">
+                    <ab2d:ZoomPanel Stretch="None" ViewboxLimits="0 0 1 1" ViewboxMinSize="0.1 0.1" IsViewboxLimited="True"  Name="ZoomingPanel">
+                        <Border Name="GraphTypePopupBlurEffect" Background="White" BorderBrush="Black">
+                            <Border.Effect>
+                                <BlurEffect Radius="10" KernelType="Gaussian"/>
+                            </Border.Effect>
+                            <Canvas Name="DrawingArea" IsEnabled="False" Height="2000" Width="2000" Style="{StaticResource GridCanvas}" ClipToBounds="True"
+                                    MouseRightButtonDown="DeleteGraphElement_Click" 
+                                    MouseMove="MoveVertexOnCanvas" 
+                                    MouseLeftButtonDown="DrawGraphElement_Click"/>
+                        </Border>
+                    </ab2d:ZoomPanel>
+                    <DockPanel Name="GraphTypePopup" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="Select graph type" Margin="2" FontSize="16" FontFamily="Verdana" HorizontalAlignment="Center" />
+                            <Button x:Name="UnDirectedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Undirected Graph " Content="{DynamicResource Minus}"/>
+                            <Button x:Name="DirectedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Directed Graph " Content="{DynamicResource Directed}"/>
+                            <Button x:Name="WeightedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Weighted Graph " Content="{DynamicResource Weighted}"/>
+                        </StackPanel>
+                    </DockPanel>
                 </Grid>
             <StackPanel Orientation="Horizontal" Grid.Row="2">
                 <ToggleButton x:Name="ShowGrid" Style="{StaticResource iToggleButtonStyle}" IsChecked="True" Tag="Show Grid " Content="{DynamicResource Grid}"/>
@@ -247,6 +263,20 @@
                     <Button Name="GetNext" Click="GetNext_Click" Style="{StaticResource ButtonStyle}" Content="{DynamicResource Next}"/>
                 </StackPanel>
                </StackPanel>
+        </Grid>
+            <Grid x:Name="Navigation" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="5 30 0 25">
+                <Rectangle RadiusX="3" RadiusY="3" Fill="#AAFFFFFF" Stroke="LightGray" StrokeThickness="2"/>
+                <StackPanel Orientation="Vertical" Margin="5">
+                    <TextBlock FontWeight="Bold" Margin="0 0 0 5">Keyboard navigation:</TextBlock>
+                    <TextBlock>Num+, Delete - Zoom In</TextBlock>
+                    <TextBlock>Num-, Insert - Zoom Out</TextBlock>
+                    <TextBlock>Home - ResetToLimits</TextBlock>
+                    <TextBlock>Arrow keys - move arround</TextBlock>
+                    <TextBlock Margin="0 5 0 0">SPACE - toggle move</TextBlock>
+                    <TextBlock>SHIFT + SPACE - toggle Zoom In</TextBlock>
+                    <TextBlock>CTRL + SPACE - toggle Zoom Out</TextBlock>
+                </StackPanel>
+            </Grid>
         </Grid>
         <TabControl Grid.Row="1" Grid.Column="1" Margin="0 0 20 25">
             <TabItem Header="Adjacency matrix" FontFamily="Consolas italic" IsSelected="True">

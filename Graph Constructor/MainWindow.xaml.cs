@@ -1,4 +1,5 @@
-﻿using Graph_Constructor.Algorithms;
+﻿using Ab2d.Controls;
+using Graph_Constructor.Algorithms;
 using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using Petzold.Media2D;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Effects;
@@ -25,6 +27,12 @@ namespace Graph_Constructor
         bool _isWeightedGraph = false;
         bool _isDirectedGraph = true;
         bool _isAnimation = false;
+
+        private bool _isSpaceKeyDown;
+        private bool _isZoomModeChanged;
+        private Ab2d.Controls.ZoomPanel.ZoomModeType _savedZoomMode;
+
+
         public ObservableCollection<Vertex> Vertices { get; set; }
         public ObservableCollection<Edge> Edges { get; set; }
         private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix;
@@ -50,13 +58,178 @@ namespace Graph_Constructor
             Vertices = new ObservableCollection<Vertex>(_graph.GetAllVertices().ToList());
             Edges = new ObservableCollection<Edge>(_graph.GetAllEdges().ToList());
             AdjList = new ObservableCollection<ObservableCollection<MatrixCellValue>>();
+
+            this.PreviewKeyDown += new KeyEventHandler(PainterSample_PreviewKeyDown);
+            this.PreviewKeyUp += new KeyEventHandler(PainterSample_PreviewKeyUp);
         }
+
+        #region handle zooming shortcuts
+        void PainterSample_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            ProcessKeyEvent(e);
+        }
+        
+        void PainterSample_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            ProcessKeyEvent(e);
+        }
+
+        private void ProcessKeyEvent(KeyEventArgs e)
+        {
+            if (e.Key == Key.Space)
+            {
+                // First handle space
+                _isSpaceKeyDown = e.IsDown;
+
+                if (UpdateZoomMode())
+                    e.Handled = true;
+            }
+            else if (_isSpaceKeyDown)
+            {
+                // While the space is down, the Control os Shift can be pressed or released - check this
+                if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl ||
+                    e.Key == Key.LeftShift || e.Key == Key.RightShift)
+                {
+                    if (UpdateZoomMode())
+                        e.Handled = true;
+                }
+            }
+            else
+            {
+                // Handle other keys
+                switch (e.Key)
+                {
+                    case Key.Left:
+                        if (e.IsDown || e.IsRepeat) // On key up only set handled to true
+                            ZoomingPanel.LineLeft(); // As using the scroll bar
+
+                        e.Handled = true;
+
+                        break;
+
+                    case Key.Right: 
+                        if (e.IsDown || e.IsRepeat)
+                            ZoomingPanel.LineRight(); // As using the scroll bar
+
+                        e.Handled = true;
+
+                        break;
+
+                    case Key.Up:
+                        if (e.IsDown || e.IsRepeat)
+                            ZoomingPanel.LineUp(); // As using the scroll bar
+
+                        e.Handled = true;
+
+                        break;
+
+                    case Key.Down:
+                        if (e.IsDown || e.IsRepeat)
+                            ZoomingPanel.LineDown(); // As using the scroll bar
+
+                        e.Handled = true;
+
+                        break;
+
+                    case Key.Home:
+                        if (e.IsDown || e.IsRepeat)
+                            ZoomingPanel.ResetToLimits();
+
+                        e.Handled = true;
+
+                        break;
+
+                    case Key.Insert: // ZoomOut
+                    case Key.Subtract: // ZoomOut
+                        if (e.IsDown || e.IsRepeat)
+                            ZoomingPanel.ZoomForFactor(1 / ZoomingPanel.MouseWheelZoomFactor); // ZoomingPanel.MouseWheelZoomFactor == Zoom In factor
+
+                        e.Handled = true;
+
+                        break;
+
+                    case Key.Delete: // ZoomIn
+                    case Key.Add: // ZoomIn
+                        if (e.IsDown || e.IsRepeat)
+                            ZoomingPanel.ZoomForFactor(ZoomingPanel.MouseWheelZoomFactor);
+
+                        e.Handled = true;
+                        break;
+                }
+            }
+        }
+
+        private bool UpdateZoomMode()
+        {
+            bool isHandled;
+
+            isHandled = false;
+
+            if (_isSpaceKeyDown)
+            {
+                Ab2d.Controls.ZoomPanel.ZoomModeType newZoomMode;
+
+                if (Keyboard.Modifiers == ModifierKeys.None)
+                {
+                    newZoomMode = Ab2d.Controls.ZoomPanel.ZoomModeType.Move;
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    newZoomMode = Ab2d.Controls.ZoomPanel.ZoomModeType.ZoomIn;
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Shift)
+                {
+                    newZoomMode = Ab2d.Controls.ZoomPanel.ZoomModeType.ZoomOut;
+                }
+                else
+                {
+                    newZoomMode = Ab2d.Controls.ZoomPanel.ZoomModeType.None;
+                }
+
+                if (newZoomMode != Ab2d.Controls.ZoomPanel.ZoomModeType.None)
+                {
+                    ChanageZoomMode(newZoomMode);
+                    isHandled = true;
+                }
+            }
+            else
+            {
+                ResetZoomMode();
+                isHandled = true;
+            }
+
+            return isHandled;
+        }
+
+        private void ChanageZoomMode(Ab2d.Controls.ZoomPanel.ZoomModeType newZoomMode)
+        {
+            if (ZoomingPanel.ZoomMode != newZoomMode && newZoomMode != Ab2d.Controls.ZoomPanel.ZoomModeType.None)
+            {
+                if (!_isZoomModeChanged) // if zoom mode was already changed (only modifier - control or shift - was pressed)
+                    _savedZoomMode = ZoomingPanel.ZoomMode;
+
+                ZoomingPanel.ZoomMode = newZoomMode;
+                _isZoomModeChanged = true;
+            }
+        }
+
+        private void ResetZoomMode()
+        {
+            if (_isZoomModeChanged)
+            {
+                ZoomingPanel.ZoomMode = _savedZoomMode;
+                _isZoomModeChanged = false;
+            }
+        }
+        #endregion
 
         private void DrawGraphElement_Click(object sender, MouseButtonEventArgs e)
         {
-            _currentSelectedVertex = SelectedVertex(e);
             if (MoveMode.IsChecked == true)
                 return;
+            if (ZoomingPanel.ZoomMode != Ab2d.Controls.ZoomPanel.ZoomModeType.None)
+                return;
+            _currentSelectedVertex = SelectedVertex(e);
             if (_currentSelectedVertex != null)
             {
                 if (!DrawingArea.Children.Contains(_tempLineOnMouseMove))
@@ -454,6 +627,25 @@ namespace Graph_Constructor
             if (_isAnimation)
                 ClearAnimation();
             _algorithmSteps.ShowNextStep();
+        }
+
+        private void ZoomingPanel_ViewboxChanged(object sender, Ab2d.Controls.ViewboxChangedRoutedEventArgs e)
+        {
+            //DrawingArea.Width /= ZoomingPanel.ZoomFactor;
+            //DrawingArea.Height /= ZoomingPanel.ZoomFactor;
+        }
+
+        private void ShowKeybordNavigation_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as ToggleButton;
+            if (button.IsChecked.HasValue && button.IsChecked.Value)
+            {
+                Navigation.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                Navigation.Visibility = Visibility.Collapsed;
+            }
         }
     }
 }

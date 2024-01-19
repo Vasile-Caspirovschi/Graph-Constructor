@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ab2d.Controls.ZoomPanel" Version="6.1.8514" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.0" />
   </ItemGroup>
 
