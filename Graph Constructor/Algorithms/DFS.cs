@@ -1,4 +1,5 @@
-﻿using Graph_Constructor.Helpers;
+﻿using Graph_Constructor.Enums;
+using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;

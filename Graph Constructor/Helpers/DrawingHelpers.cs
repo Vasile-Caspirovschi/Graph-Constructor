@@ -1,4 +1,5 @@
-﻿using Graph_Constructor.Models;
+﻿using Graph_Constructor.Enums;
+using Graph_Constructor.Models;
 using Petzold.Media2D;
 using System;
 using System.Linq;
@@ -135,7 +136,7 @@ namespace Graph_Constructor.Helpers
             return false;
         }
 
-        static ArrowLine CreateEdge(Grid startVertex, Grid endVertex)
+        static ArrowLine CreateEdge(Grid startVertex, Grid endVertex, GraphType graphType = GraphType.Directed)
         {
             Point centerStart = new Point()
             {
@@ -159,15 +160,15 @@ namespace Graph_Constructor.Helpers
                 Stroke = Colors.ToBrush(Colors.DefaultEdgeColor),
                 StrokeThickness = 3,
                 IsArrowClosed = true,
-                ArrowEnds = ArrowEnds.End,
+                ArrowEnds = graphType == GraphType.Undirected ? ArrowEnds.None : ArrowEnds.End,
                 Tag = GetNameForEdge(startVertex, endVertex),
             };
             return edge;
         }
 
-        public static void DrawEdgeOnCanvas(Canvas canvas, Grid startVertex, Grid endVertex)
+        public static void DrawEdgeOnCanvas(Canvas canvas, Grid startVertex, Grid endVertex, GraphType graphType)
         {
-            ArrowLine edge = CreateEdge(startVertex, endVertex);
+            ArrowLine edge = CreateEdge(startVertex, endVertex, graphType);
             Canvas.SetLeft(edge, 15);
             Canvas.SetTop(edge, 15);
             canvas.Children.Add(edge);
@@ -181,7 +182,8 @@ namespace Graph_Constructor.Helpers
             canvas.Children.Add(edge);
         }
 
-        public static void DrawWeightedEdgeOnCanvas(Canvas canvas, Grid startVertex, Grid endVertex, string weight)
+        public static void DrawWeightedEdgeOnCanvas(Canvas canvas, Grid startVertex,
+            Grid endVertex, string weight)
         {
             ArrowLine edge = CreateEdge(startVertex, endVertex);
             DrawEdgeOnCanvas(canvas, edge);
@@ -277,7 +279,7 @@ namespace Graph_Constructor.Helpers
             return vertex.Children.OfType<TextBlock>().Single().Text;
         }
 
-        public static void UpdateEdgeFlow(Canvas canvas,string identifier,Edge edge, int flow)
+        public static void UpdateEdgeFlow(Canvas canvas, string identifier, Edge edge, int flow)
         {
             var block = canvas.Children.OfType<TextBlock>().Where(block => block.Tag.ToString() == identifier).First();
             block.Text = $"{edge.Cost} ({flow})";
@@ -293,7 +295,7 @@ namespace Graph_Constructor.Helpers
                 name = block.Tag.ToString().Split(' ');
                 Vertex start = graph.GetVertexById(int.Parse(name[0]));
                 Vertex end = graph.GetVertexById(int.Parse(name[1]));
-                block.Text = graph.GetEdge(start,end).Cost.ToString();
+                block.Text = graph.GetEdge(start, end).Cost.ToString();
                 block.Foreground = Colors.ToBrush(Colors.EdgeWeightColor);
             }
         }
@@ -310,7 +312,7 @@ namespace Graph_Constructor.Helpers
 
         public static void UpdateWeightOnCanvas(Canvas canvas, string weightId, string newWeight)
         {
-            TextBlock weightBlock = canvas.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightId || x.Tag.ToString() == weightId.Reverse()).FirstOrDefault();
+            TextBlock? weightBlock = canvas.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightId || x.Tag.ToString() == weightId.Reverse()).FirstOrDefault();
             if (weightBlock == null && newWeight != "∞")
             {
                 string[] vertices = weightId.Split(' ');

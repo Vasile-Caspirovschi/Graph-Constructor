@@ -1,5 +1,6 @@
 ﻿using Ab2d.Controls;
 using Graph_Constructor.Algorithms;
+using Graph_Constructor.Enums;
 using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using Petzold.Media2D;
@@ -23,41 +24,39 @@ namespace Graph_Constructor
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        static int _vertexId = 0;
-        bool _isWeightedGraph = false;
-        bool _isDirectedGraph = true;
         bool _isAnimation = false;
 
         private bool _isSpaceKeyDown;
         private bool _isZoomModeChanged;
-        private Ab2d.Controls.ZoomPanel.ZoomModeType _savedZoomMode;
+        private ZoomPanel.ZoomModeType _savedZoomMode;
 
-
-        public ObservableCollection<Vertex> Vertices { get; set; }
-        public ObservableCollection<Edge> Edges { get; set; }
-        private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix;
-        public ObservableCollection<ObservableCollection<MatrixCellValue>> Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
-        public ObservableCollection<ObservableCollection<MatrixCellValue>> AdjList { get; set; }
-        public bool IsWeightedGraph { get => _isWeightedGraph; set { _isWeightedGraph = value; OnPropertyChanged("IsWeightedGraph"); } }
-
-        public bool IsDirectedGraph { get => _isDirectedGraph; set { _isDirectedGraph = value; OnPropertyChanged("IsDirectedGraph"); } }
-
-        private Graph _graph;
+        private Graph _graph = null!;
         private Grid? _previousSelectedVertex;
         private Grid? _currentSelectedVertex;
-        private Line _tempLineOnMouseMove;
+        private Line _tempLineOnMouseMove = null!;
         private bool _wasAlgoRunned;
-        private AlgorithmSteps _algorithmSteps;
+        private AlgorithmSteps _algorithmSteps = null!;
+        private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix = new();
+
         public event PropertyChangedEventHandler? PropertyChanged;
+        public ObservableCollection<Vertex> Vertices { get; set; } = new();
+        public ObservableCollection<ObservableCollection<MatrixCellValue>> AdjList { get; set; } = new();
+        public ObservableCollection<ObservableCollection<MatrixCellValue>> Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
+        public bool IsWeightedGraph
+        {
+            get => _graph != null && _graph.GetGraphType == GraphType.Weighted; set
+            {
+                if (_graph.GetGraphType == GraphType.Weighted != value)
+                {
+                    OnPropertyChanged(nameof(IsWeightedGraph));
+                }
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = this;
-            _graph = new Graph(IsWeightedGraph);
-            Vertices = new ObservableCollection<Vertex>(_graph.GetAllVertices().ToList());
-            Edges = new ObservableCollection<Edge>(_graph.GetAllEdges().ToList());
-            AdjList = new ObservableCollection<ObservableCollection<MatrixCellValue>>();
 
             this.PreviewKeyDown += new KeyEventHandler(PainterSample_PreviewKeyDown);
             this.PreviewKeyUp += new KeyEventHandler(PainterSample_PreviewKeyUp);
@@ -68,7 +67,7 @@ namespace Graph_Constructor
         {
             ProcessKeyEvent(e);
         }
-        
+
         void PainterSample_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             ProcessKeyEvent(e);
@@ -107,7 +106,7 @@ namespace Graph_Constructor
 
                         break;
 
-                    case Key.Right: 
+                    case Key.Right:
                         if (e.IsDown || e.IsRepeat)
                             ZoomingPanel.LineRight(); // As using the scroll bar
 
@@ -227,7 +226,7 @@ namespace Graph_Constructor
         {
             if (MoveMode.IsChecked == true)
                 return;
-            if (ZoomingPanel.ZoomMode != Ab2d.Controls.ZoomPanel.ZoomModeType.None)
+            if (ZoomingPanel.ZoomMode != ZoomPanel.ZoomModeType.None)
                 return;
             _currentSelectedVertex = SelectedVertex(e);
             if (_currentSelectedVertex != null)
@@ -275,14 +274,14 @@ namespace Graph_Constructor
                 var adjacentEdgesIn = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[1] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
                 foreach (var edge in adjacentEdgesOut)
                 {
-                    if (IsWeightedGraph)
+                    if (GraphType.Weighted == _graph.GetGraphType)
                         DrawingHelpers.UpdateOutWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
                     else
                         DrawingHelpers.UpdateOutEdgeLocationOnVertexMoving(mousePos, edge);
                 }
                 foreach (var edge in adjacentEdgesIn)
                 {
-                    if (IsWeightedGraph)
+                    if (GraphType.Weighted == _graph.GetGraphType)
                         DrawingHelpers.UpdateInWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
                     else
                         DrawingHelpers.UpdateInEdgeLocationOnVertexMoving(mousePos, edge);
@@ -311,11 +310,11 @@ namespace Graph_Constructor
             if (e.OriginalSource is ArrowLine)
             {
                 ArrowLine graphEdge = e.OriginalSource as ArrowLine;
-                string[] extremities = graphEdge.Tag.ToString().Split(' ');
+                string[] extremities = graphEdge.Tag.ToString()!.Split(' ');
                 Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(extremities[0])).First();
                 Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(extremities[1])).First();
-                if (_isWeightedGraph)
-                    RemoveWeightedEdge(start, end, graphEdge.Tag.ToString());
+                if (GraphType.Weighted == _graph.GetGraphType)
+                    RemoveWeightedEdge(start, end, graphEdge.Tag.ToString()!);
                 else
                     RemoveEdge(start, end);
                 DrawingArea.Children.Remove(graphEdge);
@@ -348,7 +347,6 @@ namespace Graph_Constructor
                 DrawingArea.Children.Remove(_currentSelectedVertex);
                 DrawingHelpers.RemoveIncidentEdgesOfVertex(DrawingArea, vertexToRemove);
                 DrawingHelpers.UpdateVertexIdAfterRemoving(DrawingArea, vertexToRemove.Id);
-                _vertexId--;
             }
         }
 
@@ -380,17 +378,18 @@ namespace Graph_Constructor
                 AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
                 if (!DrawingHelpers.CheckForOppositeEdge(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
                 {
-                    if (IsWeightedGraph)
+                    _graph.AddEdge(start, end);
+                    if (GraphType.Weighted == _graph.GetGraphType)
                     {
-                        _graph.AddEdge(start, end);
                         Matrix = WeightedMatrixHandler.AddEdge(Matrix, Vertices, _graph.GetEdge(start, end));
                         DrawingHelpers.DrawWeightedEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, Matrix[Vertices.IndexOf(start)][Vertices.IndexOf(end)].Value.ToString());
                     }
                     else
                     {
-                        _graph.AddEdge(start, end);
                         Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, start, end);
-                        DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex);
+                        if (GraphType.Undirected == _graph.GetGraphType)
+                            Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, end, start);
+                        DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, _graph.GetGraphType);
                     }
                 }
                 _previousSelectedVertex = null;
@@ -407,20 +406,20 @@ namespace Graph_Constructor
                 if (DrawingHelpers.IsVertexCollision(mouseLocation, new Point(Canvas.GetLeft(vertex) - 15, Canvas.GetTop(vertex) - 15)))
                     return;
 
-            Vertex newVertex = new Vertex(++_vertexId, mouseLocation);
+            Vertex newVertex = new Vertex(_graph.GetNextVertexId, mouseLocation);
             _graph.AddVertex(newVertex);
             Vertices.Add(newVertex);
-            if (IsWeightedGraph)
-                Matrix = WeightedMatrixHandler.AddVertex(Matrix, Vertices.Count);
-            else
-                Matrix = AdjacencyMatrixHandler.AddVertex(Matrix, Vertices.Count);
+            //if (GraphType.Weighted == _graph.GetGraphType)
+            //    Matrix = WeightedMatrixHandler.AddVertex(Matrix, Vertices.Count);
+            //else
+            Matrix = AdjacencyMatrixHandler.AddVertex(Matrix, Vertices.Count);
             var temp = new ObservableCollection<MatrixCellValue>
             {
                 new MatrixCellValue(0)
             };
             AdjList.Add(temp);
 
-            DrawingHelpers.DrawVertexOnCanvas(DrawingArea, _vertexId.ToString(), newVertex.Location);
+            DrawingHelpers.DrawVertexOnCanvas(DrawingArea, newVertex.Id.ToString(), newVertex.Location);
             _previousSelectedVertex = null;
         }
 
@@ -491,7 +490,7 @@ namespace Graph_Constructor
             else
             {
                 DrawingArea.Children.Clear();
-                _graph = new Graph(IsWeightedGraph);
+                _graph = null!;
                 Matrix.Clear();
                 Vertices.Clear();
                 AdjList.Clear();
@@ -502,7 +501,6 @@ namespace Graph_Constructor
                     Radius = 5
                 };
                 DrawingArea.IsEnabled = false;
-                _vertexId = 0;
             }
 
         }
@@ -518,19 +516,22 @@ namespace Graph_Constructor
             _isAnimation = false;
         }
 
-        private void SetCanvasType_Click(object sender, RoutedEventArgs e)
+        private void CreateNewGraph_Click(object sender, RoutedEventArgs e)
         {
-            if (((Button)sender).Name == "WeightedGraph")
-            {
-                IsDirectedGraph = false;
-                IsWeightedGraph = true;
-            }
+            GraphType graphType = GraphType.Undirected;
+            var btn = sender as Button;
+            if (btn.Name == "WeightedGraph")
+                graphType = GraphType.Weighted;
+            if (btn.Name == "DirectedGraph")
+                graphType = GraphType.Directed;
+
+            _graph = new Graph(graphType);
+
+            IsWeightedGraph = GraphType.Weighted == graphType;
+            if (GraphType.Weighted == _graph.GetGraphType)
+                Matrix = WeightedMatrixHandler.CreateWeightedMatrix(new(), new());
             else
-                IsWeightedGraph = false;
-            if (IsWeightedGraph)
-                Matrix = WeightedMatrixHandler.CreateWeightedMatrix(Vertices.ToList(), Edges.ToList());
-            else
-                Matrix = AdjacencyMatrixHandler.CreateAdjacencyMatrix(Vertices.ToList(), Edges.ToList());
+                Matrix = AdjacencyMatrixHandler.CreateAdjacencyMatrix(new(), new());
             GraphTypePopup.Visibility = Visibility.Collapsed;
             GraphTypePopupBlurEffect.Effect = null;
             DrawingArea.IsEnabled = true;
@@ -559,8 +560,6 @@ namespace Graph_Constructor
             _currentSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, vertices[1]);
             DrawingHelpers.HighlightSelection(_currentSelectedVertex);
             DrawingHelpers.HighlightSelection(_previousSelectedVertex);
-            if (IsDirectedGraph)
-                textBox.IsReadOnly = true;
         }
 
         private void Cell_GotMouseCapture(object sender, MouseEventArgs e)
@@ -582,9 +581,38 @@ namespace Graph_Constructor
             {
                 BindingExpression bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
                 bindingExpression.UpdateSource();
-                TextBlock weightBlock = DrawingArea.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == textBox.Tag.ToString()).FirstOrDefault();
+
                 Vertex start = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex)));
                 Vertex end = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)));
+
+                //if (GraphType.Weighted == _graph.GetGraphType)
+                //{
+                //    if (textBox.Text == "∞")
+                //    {
+                //        ArrowLine edge = DrawingArea.Children.OfType<ArrowLine>().Where(x => x.Tag.ToString() == new string($"{start.Id} {end.Id}")).First();
+                //        if (edge is not null)
+                //        {
+                //            RemoveWeightedEdge(start, end, textBox.Tag.ToString());
+                //            DrawingArea.Children.Remove(edge);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        if (_graph.GetEdge(start, end) is not null)
+                //        {
+                //            _graph.UpdateEdgeWeight(start, end, int.Parse(textBox.Text));
+                //        }
+                //        else
+                //        {
+                //            AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
+                //            _graph.AddEdge(start, end, int.Parse(textBox.Text));
+                //        }
+                //        DrawingHelpers.UpdateWeightOnCanvas(DrawingArea, textBox.Tag.ToString(), textBox.Text);
+                //    }
+                //}
+                //Keyboard.ClearFocus();
+                TextBlock? weightBlock = DrawingArea.Children.OfType<TextBlock>()
+                        .Where(x => x.Tag.ToString() == textBox.Tag.ToString()).FirstOrDefault();
                 if (textBox.Text == "∞" && weightBlock != null)
                 {
                     ArrowLine edge = DrawingArea.Children.OfType<ArrowLine>().Where(x => x.Tag.ToString() == new string($"{start.Id} {end.Id}")).First();

@@ -248,9 +248,9 @@
                     <DockPanel Name="GraphTypePopup" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock Text="Select graph type" Margin="2" FontSize="16" FontFamily="Verdana" HorizontalAlignment="Center" />
-                            <Button x:Name="UnDirectedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Undirected Graph " Content="{DynamicResource Minus}"/>
-                            <Button x:Name="DirectedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Directed Graph " Content="{DynamicResource Directed}"/>
-                            <Button x:Name="WeightedGraph" Click="SetCanvasType_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Weighted Graph " Content="{DynamicResource Weighted}"/>
+                            <Button x:Name="UndirectedGraph" Click="CreateNewGraph_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Undirected Graph " Content="{DynamicResource Minus}"/>
+                            <Button x:Name="DirectedGraph" Click="CreateNewGraph_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Directed Graph " Content="{DynamicResource Directed}"/>
+                            <Button x:Name="WeightedGraph" Click="CreateNewGraph_Click" Margin="2" Height="35" Style="{StaticResource ButtonStyle}" Tag="Weighted Graph " Content="{DynamicResource Weighted}"/>
                         </StackPanel>
                     </DockPanel>
                 </Grid>

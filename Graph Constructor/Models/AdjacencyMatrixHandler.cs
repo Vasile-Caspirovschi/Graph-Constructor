@@ -21,7 +21,13 @@ namespace Graph_Constructor.Models
             for (int index = 0; index < numberOfVertices; index++)
                 temp.Add(new MatrixCellValue(0, new string($"{numberOfVertices} {index + 1}")));
             matrix.Add(temp);
+            ValidateMainDiagonal(matrix);
             return matrix;
+        }
+        static void ValidateMainDiagonal(ObservableCollection<ObservableCollection<MatrixCellValue>> matrix)
+        {
+            for (int i = 0; i < matrix.Count; i++)
+                matrix[i][i].Value = -1;
         }
 
         public static ObservableCollection<ObservableCollection<MatrixCellValue>> RemoveVertex(ObservableCollection<ObservableCollection<MatrixCellValue>> matrix, ObservableCollection<Vertex> vertices, Vertex vertexToRemove)

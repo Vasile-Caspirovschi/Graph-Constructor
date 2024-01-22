@@ -1,5 +1,6 @@
-﻿namespace Graph_Constructor.Helpers
+﻿namespace Graph_Constructor.Enums
 {
+
     public enum Delay
     {
         VeryTiny = 150,
