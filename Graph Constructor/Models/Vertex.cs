@@ -29,7 +29,7 @@ namespace Graph_Constructor.Models
             get { return _id; }
             set { _id = value; OnPropertyChanged("Id"); }
         }
-        public Point Location { get { return _location; } }
+        public Point Location { get { return _location; } set { _location = value; } }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

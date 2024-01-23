@@ -39,32 +39,24 @@ namespace Graph_Constructor.Models
 
             foreach (var edge in edgesToRemove)
                 RemoveEdge(edge.From, edge.To);
-            UpdateVertexIdAfterRemoving(vertex.Id);
-            _adjacencyList.Remove(vertex);
+            UpdateVertexIdAfterRemoving(vertex);
         }
 
-        private void UpdateVertexIdAfterRemoving(int removedId)
+        private void UpdateVertexIdAfterRemoving(Vertex vertex)
         {
-            foreach (var vertex in AdjacencyList.Where(vertex => vertex.Key.Id > removedId))
+            for (int i = vertex.Id; i < _nextVertexId; i++)
             {
-                vertex.Key.Id -= 1;
-                foreach (var edge in vertex.Value)
+                var current = _adjacencyList.Keys.FirstOrDefault(v => v.Id == i);
+                var next = _adjacencyList.Keys.FirstOrDefault(v => v.Id == i + 1);
+                current.Location = next.Location;
+                _adjacencyList[current] = _adjacencyList[next];
+                foreach (var edge in _adjacencyList[next])
                 {
-                    edge.From.Id = edge.From.Id != 1 ? edge.From.Id - 1 : edge.From.Id; ;
-                    edge.To.Id = edge.To.Id != 1? edge.To.Id - 1 : edge.To.Id;
-
-                    if (_type == GraphType.Undirected)
-                    {
-                        // Update the opposite edge if it exists
-                        var oppositeEdge = AdjacencyList[edge.To].FirstOrDefault(e => e.To == vertex.Key);
-                        if (oppositeEdge != null)
-                        {
-                            oppositeEdge.From.Id = oppositeEdge.From.Id != 1 ? oppositeEdge.From.Id - 1 : oppositeEdge.From.Id;
-                            oppositeEdge.To.Id = oppositeEdge.To.Id != 1 ? oppositeEdge.To.Id - 1 : oppositeEdge.To.Id; ;
-                        }
-                    }
+                    edge.From.Id = current.Id;
+                    edge.To.Id = next.Id;
                 }
             }
+            _adjacencyList.Remove(_adjacencyList.Keys.FirstOrDefault(v => v.Id == _nextVertexId));
             _nextVertexId -= 1;
         }
 
@@ -81,8 +73,6 @@ namespace Graph_Constructor.Models
 
             var srcEdge = new Edge(from, to);
             _adjacencyList[from].Add(srcEdge);
-            if (_type == GraphType.Undirected)
-                _adjacencyList[to].Add(srcEdge);
         }
 
         public void AddEdge(Vertex from, Vertex to, int cost)
@@ -110,9 +100,6 @@ namespace Graph_Constructor.Models
             var srcEdge = _adjacencyList[from].FirstOrDefault(edge => edge.To.Id == to.Id);
             if (srcEdge is not null)
                 _adjacencyList[from].Remove(srcEdge);
-            var destEdge = _adjacencyList[to].FirstOrDefault(edge => edge.From.Id == from.Id);
-            if (destEdge is not null)
-                _adjacencyList[to].Remove(destEdge);
         }
 
         public Edge GetEdge(Vertex from, Vertex to)

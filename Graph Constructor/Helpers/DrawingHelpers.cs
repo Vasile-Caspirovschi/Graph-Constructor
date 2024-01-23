@@ -58,7 +58,18 @@ namespace Graph_Constructor.Helpers
         public static void UpdateVertexIdAfterRemoving(Canvas canvas, int removedId)
         {
             //update vertex id
-            var verticesToUpdate = canvas.Children.OfType<Grid>().Where(grid => int.Parse(grid.Children.OfType<TextBlock>().First().Text) > removedId);
+            var verticesToUpdate = canvas.Children.OfType<Grid>()
+                 .Where(grid =>
+                 {
+                     if (grid.Children.OfType<TextBlock>().FirstOrDefault() is TextBlock textBlock)
+                     {
+                         if (int.TryParse(textBlock.Text, out int vertexId))
+                         {
+                             return vertexId > removedId;
+                         }
+                     }
+                     return false;
+                 });
             foreach (var vertex in verticesToUpdate)
             {
                 var textBox = vertex.Children.OfType<TextBlock>().First();
