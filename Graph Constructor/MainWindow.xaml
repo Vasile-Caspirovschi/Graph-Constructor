@@ -7,7 +7,7 @@
         xmlns:ab2d="clr-namespace:Ab2d.Controls;assembly=Ab2d.Controls.ZoomPanel"
         xmlns:converters="clr-namespace:Graph_Constructor.Convertes"
         mc:Ignorable="d"
-        Title="Graph Constructor" Height="600" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="1000">
+        Title="Graph Constructor" Height="750" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="1200">
     <Window.Resources>
         <converters:MatrixCellValidator x:Key="MatrixCellValidator"/>
         <DataTemplate x:Key="MatrixCell">
@@ -202,16 +202,17 @@
         <PathGeometry x:Key="Navigation" Figures="M12 2L16 6H13V13.85L19.53 17.61L21 15.03L22.5 20.5L17 21.96L18.53 19.35L12 15.58L5.47 19.35L7 21.96L1.5 20.5L3 15.03L4.47 17.61L11 13.85V6H8L12 2M21 5H19V3H21V5M22 10V12H18V10H19V8H18V6H21V10H22Z"/>
         <PathGeometry x:Key="Minus" Figures="M19,13H5V11H19V13Z"/>
     </Window.Resources>
-    <Grid  Name="grid">
+    <Grid Name="grid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
+            <ColumnDefinition Width="5"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Grid Grid.ColumnSpan="2" Margin="20 5">
+        <Grid Grid.ColumnSpan="3" Margin="20 5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -234,7 +235,7 @@
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunSpanningTree" Content="Spanning Tree"/>
             </StackPanel>
         </Grid>
-        <Grid Margin="20 0" Grid.Row="1">
+        <Grid Margin="20 0 10 0" Grid.Row="1">
             <Grid >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -279,21 +280,23 @@
                 </StackPanel>
                </StackPanel>
         </Grid>
-            <Grid x:Name="Navigation" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="5 30 0 25">
+            <Grid x:Name="Navigation" VerticalAlignment="Top" Width="200" HorizontalAlignment="Right" Margin="5 30 0 25">
                 <Rectangle RadiusX="3" RadiusY="3" Fill="#AAFFFFFF" Stroke="LightGray" StrokeThickness="2"/>
                 <StackPanel Orientation="Vertical" Margin="5">
-                    <TextBlock FontWeight="Bold" Margin="0 0 0 5">Keyboard navigation:</TextBlock>
-                    <TextBlock>Num+, Delete - Zoom In</TextBlock>
-                    <TextBlock>Num-, Insert - Zoom Out</TextBlock>
-                    <TextBlock>Home - ResetToLimits</TextBlock>
-                    <TextBlock>Arrow keys - move arround</TextBlock>
-                    <TextBlock Margin="0 5 0 0">SPACE - toggle move</TextBlock>
+                    <TextBlock FontWeight="Bold" Margin="0 0 0 2">Keyboard navigation:</TextBlock>
+                    <TextBlock FontWeight="DemiBold">For drawing graphs</TextBlock>
+                    <TextBlock>LEFT-CLICK - draw a vertex</TextBlock>
+                    <TextBlock TextWrapping="Wrap">LEFT-CLICK(on two vertices)- draw an edge</TextBlock>
+                    <TextBlock>RIGHT-CLICK - remove vertex/edge</TextBlock>
+                    <TextBlock Margin="0 2 0 0" FontWeight="DemiBold">For zooming and panning</TextBlock>
+                    <TextBlock>SPACE - toggle move</TextBlock>
                     <TextBlock>SHIFT + SPACE - toggle Zoom In</TextBlock>
                     <TextBlock>CTRL + SPACE - toggle Zoom Out</TextBlock>
                 </StackPanel>
             </Grid>
         </Grid>
-        <TabControl Grid.Row="1" Grid.Column="1" Margin="0 0 20 25">
+        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Center" />
+        <TabControl Grid.Row="1" Grid.Column="2" Margin="10 0 20 25">
             <TabItem Header="Adjacency matrix" FontFamily="Consolas italic" IsSelected="True">
                 <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
                     <Grid Margin="10" x:Name="WeightedMatrixParent">

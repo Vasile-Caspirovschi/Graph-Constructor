@@ -46,7 +46,25 @@ namespace Graph_Constructor.Models
         private void UpdateVertexIdAfterRemoving(int removedId)
         {
             foreach (var vertex in AdjacencyList.Where(vertex => vertex.Key.Id > removedId))
+            {
                 vertex.Key.Id -= 1;
+                foreach (var edge in vertex.Value)
+                {
+                    edge.From.Id = edge.From.Id != 1 ? edge.From.Id - 1 : edge.From.Id; ;
+                    edge.To.Id = edge.To.Id != 1? edge.To.Id - 1 : edge.To.Id;
+
+                    if (_type == GraphType.Undirected)
+                    {
+                        // Update the opposite edge if it exists
+                        var oppositeEdge = AdjacencyList[edge.To].FirstOrDefault(e => e.To == vertex.Key);
+                        if (oppositeEdge != null)
+                        {
+                            oppositeEdge.From.Id = oppositeEdge.From.Id != 1 ? oppositeEdge.From.Id - 1 : oppositeEdge.From.Id;
+                            oppositeEdge.To.Id = oppositeEdge.To.Id != 1 ? oppositeEdge.To.Id - 1 : oppositeEdge.To.Id; ;
+                        }
+                    }
+                }
+            }
             _nextVertexId -= 1;
         }
 

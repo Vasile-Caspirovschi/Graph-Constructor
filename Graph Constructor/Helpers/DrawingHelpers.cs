@@ -78,7 +78,7 @@ namespace Graph_Constructor.Helpers
             }
         }
 
-        public static void RemoveIncidentEdgesOfVertex(Canvas canvas, Vertex vertexToRemove)
+        public static void RemoveIncidentEdgesOfVertex(Canvas canvas, Vertex vertexToRemove, GraphType graphType = GraphType.Undirected)
         {
             for (int i = canvas.Children.Count - 1; i >= 0; i += -1)
             {
@@ -88,7 +88,15 @@ namespace Graph_Constructor.Helpers
                 ArrowLine edge = child as ArrowLine;
                 if (edge.Tag.ToString().Split(' ')[0] == vertexToRemove.Id.ToString()
                 || edge.Tag.ToString().Split(' ')[1] == vertexToRemove.Id.ToString())
+
                     canvas.Children.Remove(edge);
+                if (graphType == GraphType.Weighted)
+                {
+                    TextBlock edgeBlock = child as TextBlock;
+                    if (edgeBlock.Tag.ToString().Split(' ')[0] == vertexToRemove.Id.ToString()
+                    || edgeBlock.Tag.ToString().Split(' ')[1] == vertexToRemove.Id.ToString())
+                        canvas.Children.Remove(edgeBlock);
+                }
             }
         }
 

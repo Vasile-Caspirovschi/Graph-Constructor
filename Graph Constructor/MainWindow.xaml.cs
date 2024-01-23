@@ -317,7 +317,7 @@ namespace Graph_Constructor
             }
             else if ((_currentSelectedVertex = SelectedVertex(e)) != null)
             {
-                Vertex vertexToRemove = Vertices.Where(vertex => vertex.Id.ToString() == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)).FirstOrDefault();
+                Vertex vertexToRemove = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)));
                 _graph.RemoveVertex(vertexToRemove);
                 Matrix.RemoveVertex(vertexToRemove);
 
@@ -613,7 +613,7 @@ namespace Graph_Constructor
                     else
                     {
                         ArrowLine? edge = DrawingArea.Children.OfType<ArrowLine>()
-                            .Where(x => x.Tag.ToString() == textBox.Tag.ToString() 
+                            .Where(x => x.Tag.ToString() == textBox.Tag.ToString()
                             || x.Tag.ToString() == $"{end.Id} {start.Id}").FirstOrDefault();
                         if (edge is not null)
                         {
