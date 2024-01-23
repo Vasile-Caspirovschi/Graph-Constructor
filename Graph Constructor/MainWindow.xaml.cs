@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +31,11 @@ namespace Graph_Constructor
         private bool _isZoomModeChanged;
         private ZoomPanel.ZoomModeType _savedZoomMode;
 
+        private int _prevValue;
+        private string _prevCell;
+        private bool _isWeightedGraph;
+        private bool _isUndirectedGraph;
+
         private Graph _graph = null!;
         private Grid? _previousSelectedVertex;
         private Grid? _currentSelectedVertex;
@@ -44,13 +50,14 @@ namespace Graph_Constructor
         public AdjacencyMatrix Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
         public bool IsWeightedGraph
         {
-            get => _graph != null && _graph.GetGraphType == GraphType.Weighted; set
-            {
-                if (_graph.GetGraphType == GraphType.Weighted != value)
-                {
-                    OnPropertyChanged(nameof(IsWeightedGraph));
-                }
-            }
+            get => _isWeightedGraph;
+            set { _isWeightedGraph = value; OnPropertyChanged(nameof(IsWeightedGraph)); }
+        }
+
+        public bool IsUndirectedGraph
+        {
+            get => _isUndirectedGraph;
+            set { _isUndirectedGraph = value; OnPropertyChanged(nameof(IsUndirectedGraph)); }
         }
 
         public MainWindow()
@@ -531,19 +538,25 @@ namespace Graph_Constructor
             _graph = new Graph(graphType);
 
             IsWeightedGraph = GraphType.Weighted == graphType;
+            IsUndirectedGraph = GraphType.Undirected == graphType;
             Matrix = new AdjacencyMatrix(graphType);
 
             GraphTypePopup.Visibility = Visibility.Collapsed;
             GraphTypePopupBlurEffect.Effect = null;
             DrawingArea.IsEnabled = true;
         }
-        void OnPropertyChanged(string propertyName)
+        //void OnPropertyChanged(string propertyName)
+        //{
+        //    var handler = PropertyChanged;
+        //    if (handler != null)
+        //    {
+        //        handler(this, new PropertyChangedEventArgs(propertyName));
+        //    }
+        //}
+
+        protected virtual void OnPropertyChanged( string propertyName)
         {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         readonly Regex regex = new Regex("[^0-9]+$");
@@ -575,8 +588,8 @@ namespace Graph_Constructor
             textBox.SelectAll();
         }
 
-        private int _prevValue;
-        private string _prevCell;
+        
+
         private void Cell_TextChanged(object sender, TextChangedEventArgs e)
         {
             TextBox textBox = (TextBox)sender;

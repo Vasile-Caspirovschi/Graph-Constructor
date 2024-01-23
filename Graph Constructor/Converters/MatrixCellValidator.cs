@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows.Data;
 
-namespace Graph_Constructor.Convertes
+namespace Graph_Constructor.Converters
 {
     public class MatrixCellValidator : IMultiValueConverter
     {

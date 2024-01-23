@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:ab2d="clr-namespace:Ab2d.Controls;assembly=Ab2d.Controls.ZoomPanel"
-        xmlns:converters="clr-namespace:Graph_Constructor.Convertes"
+        xmlns:converters="clr-namespace:Graph_Constructor.Converters"
         mc:Ignorable="d"
         Title="Graph Constructor" Height="750" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="1200">
     <Window.Resources>
         <converters:MatrixCellValidator x:Key="MatrixCellValidator"/>
+        <converters:MultiBoolOrConverter x:Key="MultiBoolOrConverter"/>
         <DataTemplate x:Key="MatrixCell">
             <TextBox x:Name="Cell" Tag="{Binding CellId}" 
                      PreviewTextInput="Cell_PreviewTextInput" 
@@ -217,22 +218,45 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal" Margin="0 5 0 0" VerticalAlignment="Center">
-                <xctk:WatermarkTextBox Height="25" x:Name="StartVertex" Watermark="Enter start" TextAlignment="Center" FontSize="12" Width="65"/>
-                <Button x:Name="RunAlgorithm" Click="RunAlgorithm_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Run Algorithm " Content="{DynamicResource Run}"/>
-                <DockPanel VerticalAlignment="Center">
-                    <Label DockPanel.Dock="Left" FontWeight="Bold">Speed:</Label>
-                    <Slider x:Name="ExecutionSpeedSlider" Foreground="Black" Minimum="1" Value="30" Maximum="100" Width="200" TickPlacement="BottomRight" IsSnapToTickEnabled="True" TickFrequency="10"/>
-                </DockPanel>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" x:Name="AlgorithmsPanel" Grid.Row="1" VerticalAlignment="Top">
+            <StackPanel Orientation="Horizontal" x:Name="AlgorithmsPanel"  VerticalAlignment="Top">
+                <Label DockPanel.Dock="Left" FontWeight="Bold">Select algorithm:</Label>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Tag="DFS" Content="DFS"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Tag="BFS" Content="BFS"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFord" Tag="Ford" Content="Ford"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Tag="BellmanCalaba" Content="Bellman-Calaba"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Tag="FordFulkersson" Content="Ford-Fulkersson"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Tag="Djikstra" Content="Djikstra"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunSpanningTree" Content="Spanning Tree"/>
+                <!--<RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Tag="Djikstra" Content="Djikstra"/>-->
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsUndirectedGraph}" Name="RunSpanningTree" Content="Spanning Tree"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0 5 0 0" VerticalAlignment="Center">
+                <xctk:WatermarkTextBox Height="25" x:Name="StartVertex" Watermark="Enter start" TextAlignment="Center" FontSize="12" Width="65">
+                    <xctk:WatermarkTextBox.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolOrConverter}">
+                            <Binding Path="IsChecked" ElementName="RunDFS" />
+                            <Binding Path="IsChecked" ElementName="RunBFS" />
+                            <Binding Path="IsChecked" ElementName="RunFord" />
+                            <Binding Path="IsChecked" ElementName="RunBellmanCalaba" />
+                            <Binding Path="IsChecked" ElementName="RunFordFulkersson" />
+                            <Binding Path="IsChecked" ElementName="RunSpanningTree" />
+                        </MultiBinding>
+                    </xctk:WatermarkTextBox.IsEnabled>
+                </xctk:WatermarkTextBox>
+                <Button x:Name="RunAlgorithm" Click="RunAlgorithm_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Run Algorithm " Content="{DynamicResource Run}">
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolOrConverter}">
+                            <Binding Path="IsChecked" ElementName="RunDFS" />
+                            <Binding Path="IsChecked" ElementName="RunBFS" />
+                            <Binding Path="IsChecked" ElementName="RunFord" />
+                            <Binding Path="IsChecked" ElementName="RunBellmanCalaba" />
+                            <Binding Path="IsChecked" ElementName="RunFordFulkersson" />
+                            <Binding Path="IsChecked" ElementName="RunSpanningTree" />
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
+                <DockPanel VerticalAlignment="Center">
+                    <Label DockPanel.Dock="Left" FontWeight="Bold">Speed:</Label>
+                    <Slider x:Name="ExecutionSpeedSlider" Foreground="Black" Minimum="1" Value="30" Maximum="100" Width="200" TickPlacement="BottomRight" IsSnapToTickEnabled="True" TickFrequency="10"/>
+                </DockPanel>
             </StackPanel>
         </Grid>
         <Grid Margin="20 0 10 0" Grid.Row="1">
@@ -244,8 +268,8 @@
                 </Grid.RowDefinitions>
                 <DockPanel>
                     <TextBlock FontSize="16" VerticalAlignment="Center" FontFamily="Consolas italic" Margin="2 0 0 0" Text="Sandbox"/>
+                    <ToggleButton x:Name="ShowKeybordNavigation" Margin="10 0 0 0" Style="{StaticResource iToggleButtonStyle}" Click="ShowKeybordNavigation_Click" IsChecked="True" Content="{DynamicResource Navigation}"/>
                     <DockPanel HorizontalAlignment="Right">
-                        <ToggleButton x:Name="ShowKeybordNavigation" Margin="0 0 0 0" Style="{StaticResource iToggleButtonStyle}" Click="ShowKeybordNavigation_Click" IsChecked="True" Content="{DynamicResource Navigation}"/>
                         <ab2d:ZoomController Background="Transparent" />
                     </DockPanel>
                 </DockPanel>
@@ -280,7 +304,7 @@
                 </StackPanel>
                </StackPanel>
         </Grid>
-            <Grid x:Name="Navigation" VerticalAlignment="Top" Width="200" HorizontalAlignment="Right" Margin="5 30 0 25">
+            <Grid x:Name="Navigation" VerticalAlignment="Top" Width="200" HorizontalAlignment="Left" Margin="3 35 0 0">
                 <Rectangle RadiusX="3" RadiusY="3" Fill="#AAFFFFFF" Stroke="LightGray" StrokeThickness="2"/>
                 <StackPanel Orientation="Vertical" Margin="5">
                     <TextBlock FontWeight="Bold" Margin="0 0 0 2">Keyboard navigation:</TextBlock>
@@ -317,6 +341,12 @@
                             <Run Text="- Edge weight" />
                         </TextBlock.Inlines>
                     </TextBlock>
+                    <TextBlock FontWeight="Bold" Margin="0 5 0 2">Other:</TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{DynamicResource Previous}" Height="15" Width="15" Stretch="Uniform" Fill="#1f54a1"/>
+                        <Path Data="{DynamicResource Next}" Height="15" Width="15" Stretch="Uniform" Fill="#1f54a1"/>
+                        <TextBlock TextWrapping="Wrap"> - Algorithm step navigation</TextBlock>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Grid>
