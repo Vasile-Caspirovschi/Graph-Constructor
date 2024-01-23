@@ -224,11 +224,11 @@ namespace Graph_Constructor
 
         private void DrawGraphElement_Click(object sender, MouseButtonEventArgs e)
         {
+            _currentSelectedVertex = SelectedVertex(e);
             if (MoveMode.IsChecked == true)
                 return;
             if (ZoomingPanel.ZoomMode != ZoomPanel.ZoomModeType.None)
                 return;
-            _currentSelectedVertex = SelectedVertex(e);
             if (_currentSelectedVertex != null)
             {
                 if (!DrawingArea.Children.Contains(_tempLineOnMouseMove))
@@ -254,37 +254,35 @@ namespace Graph_Constructor
         private void MoveVertexOnCanvas(object sender, MouseEventArgs e)
         {
             var mousePos = e.GetPosition(DrawingArea);
-
+            if (ZoomingPanel.ZoomMode != ZoomPanel.ZoomModeType.None)
+                return;
             if (Mouse.LeftButton == MouseButtonState.Pressed
                 && MoveMode.IsChecked == true && _currentSelectedVertex != null)
             {
                 var allVertices = DrawingArea.Children.OfType<Grid>().Where(vertex => vertex.Children.OfType<TextBlock>().Single().Text != DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
                 foreach (var vertex in allVertices)
                 {
-                    if (DrawingHelpers.IsVertexCollision(mousePos, new Point(Canvas.GetLeft(vertex) - 15, Canvas.GetTop(vertex) - 15)))
+                    if (!DrawingHelpers.IsVertexCollision(mousePos, new Point(Canvas.GetLeft(vertex) - 15, Canvas.GetTop(vertex) - 15)))
                     {
-                        _currentSelectedVertex = null;
-                        return;
+                        Canvas.SetLeft(_currentSelectedVertex, mousePos.X - 15);
+                        Canvas.SetTop(_currentSelectedVertex, mousePos.Y - 15);
+                        var adjacentEdgesOut = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[0] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
+                        var adjacentEdgesIn = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[1] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
+                        foreach (var edge in adjacentEdgesOut)
+                        {
+                            if (GraphType.Weighted == _graph.GetGraphType)
+                                DrawingHelpers.UpdateOutWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
+                            else
+                                DrawingHelpers.UpdateOutEdgeLocationOnVertexMoving(mousePos, edge);
+                        }
+                        foreach (var edge in adjacentEdgesIn)
+                        {
+                            if (GraphType.Weighted == _graph.GetGraphType)
+                                DrawingHelpers.UpdateInWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
+                            else
+                                DrawingHelpers.UpdateInEdgeLocationOnVertexMoving(mousePos, edge);
+                        }
                     }
-                }
-                Canvas.SetLeft(_currentSelectedVertex, mousePos.X - 15);
-                Canvas.SetTop(_currentSelectedVertex, mousePos.Y - 15);
-
-                var adjacentEdgesOut = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[0] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
-                var adjacentEdgesIn = DrawingArea.Children.OfType<ArrowLine>().Where(edge => edge.Tag.ToString().Split(' ')[1] == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex));
-                foreach (var edge in adjacentEdgesOut)
-                {
-                    if (GraphType.Weighted == _graph.GetGraphType)
-                        DrawingHelpers.UpdateOutWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
-                    else
-                        DrawingHelpers.UpdateOutEdgeLocationOnVertexMoving(mousePos, edge);
-                }
-                foreach (var edge in adjacentEdgesIn)
-                {
-                    if (GraphType.Weighted == _graph.GetGraphType)
-                        DrawingHelpers.UpdateInWeightEdgeLocationOnVertexMoving(DrawingArea, mousePos, edge);
-                    else
-                        DrawingHelpers.UpdateInEdgeLocationOnVertexMoving(mousePos, edge);
                 }
             }
             if (MoveMode.IsChecked == false && _currentSelectedVertex != null && DrawingArea.Children.Count > 2)
@@ -493,10 +491,13 @@ namespace Graph_Constructor
             else
             {
                 DrawingArea.Children.Clear();
-                _graph = null!;
-                Matrix.Clear();
-                Vertices.Clear();
-                AdjList.Clear();
+                if (_graph is not null)
+                {
+                    _graph = null!;
+                    Matrix.Clear();
+                    Vertices.Clear();
+                    AdjList.Clear();
+                }
                 GraphTypePopup.Visibility = Visibility.Visible;
                 GraphTypePopupBlurEffect.Effect = new BlurEffect()
                 {
@@ -505,7 +506,6 @@ namespace Graph_Constructor
                 };
                 DrawingArea.IsEnabled = false;
             }
-
         }
 
         private void ClearAnimation()
