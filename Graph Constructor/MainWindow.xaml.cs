@@ -36,12 +36,12 @@ namespace Graph_Constructor
         private Line _tempLineOnMouseMove = null!;
         private bool _wasAlgoRunned;
         private AlgorithmSteps _algorithmSteps = null!;
-        private ObservableCollection<ObservableCollection<MatrixCellValue>> _matrix = new();
+        private AdjacencyMatrix _matrix = null!;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         public ObservableCollection<Vertex> Vertices { get; set; } = new();
         public ObservableCollection<ObservableCollection<MatrixCellValue>> AdjList { get; set; } = new();
-        public ObservableCollection<ObservableCollection<MatrixCellValue>> Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
+        public AdjacencyMatrix Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
         public bool IsWeightedGraph
         {
             get => _graph != null && _graph.GetGraphType == GraphType.Weighted; set
@@ -293,16 +293,16 @@ namespace Graph_Constructor
 
         void RemoveEdge(Vertex start, Vertex end)
         {
-            Matrix = AdjacencyMatrixHandler.RemoveEdge(Matrix, Vertices, start, end);
+            Matrix.RemoveEdge(Vertices, start, end);
             _graph.RemoveEdge(start, end);
-            AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
+            AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).FirstOrDefault());
         }
 
         void RemoveWeightedEdge(Vertex start, Vertex end, string weightBlockId)
         {
-            Matrix = WeightedMatrixHandler.RemoveEdge(Matrix, Vertices, _graph.GetEdge(start, end));
-            AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
+            Matrix.RemoveEdge(Vertices, start, end);
             _graph.RemoveEdge(start, end);
+            AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
             DrawingArea.Children.Remove(DrawingArea.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightBlockId).First());
         }
         private void DeleteGraphElement_Click(object sender, MouseButtonEventArgs e)
@@ -313,17 +313,13 @@ namespace Graph_Constructor
                 string[] extremities = graphEdge.Tag.ToString()!.Split(' ');
                 Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(extremities[0])).First();
                 Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(extremities[1])).First();
-                if (GraphType.Weighted == _graph.GetGraphType)
-                    RemoveWeightedEdge(start, end, graphEdge.Tag.ToString()!);
-                else
-                    RemoveEdge(start, end);
-                DrawingArea.Children.Remove(graphEdge);
+                DeleteEdge(graphEdge, start, end);
             }
             else if ((_currentSelectedVertex = SelectedVertex(e)) != null)
             {
                 Vertex vertexToRemove = Vertices.Where(vertex => vertex.Id.ToString() == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)).First();
                 _graph.RemoveVertex(vertexToRemove);
-                Matrix = AdjacencyMatrixHandler.RemoveVertex(Matrix, Vertices, vertexToRemove);
+                Matrix.RemoveVertex(vertexToRemove);
 
                 //bad code
                 Vertices.Clear();
@@ -350,6 +346,15 @@ namespace Graph_Constructor
             }
         }
 
+        private void DeleteEdge(ArrowLine graphEdge, Vertex start, Vertex end)
+        {
+            if (GraphType.Weighted == _graph.GetGraphType)
+                RemoveWeightedEdge(start, end, graphEdge.Tag.ToString()!);
+            else
+                RemoveEdge(start, end);
+            DrawingArea.Children.Remove(graphEdge);
+        }
+
         private Grid SelectedVertex(MouseButtonEventArgs e)
         {
             Ellipse ellipse = new Ellipse();
@@ -370,8 +375,8 @@ namespace Graph_Constructor
 
         private void DrawEdge()
         {
-            Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex))).First();
-            Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex))).First();
+            Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex))).FirstOrDefault();
+            Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex))).FirstOrDefault();
 
             if (!DrawingHelpers.CheckIfEdgeExist(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
             {
@@ -379,16 +384,15 @@ namespace Graph_Constructor
                 if (!DrawingHelpers.CheckForOppositeEdge(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
                 {
                     _graph.AddEdge(start, end);
+                    Matrix.AddEdge(Vertices, start, end);
                     if (GraphType.Weighted == _graph.GetGraphType)
                     {
-                        Matrix = WeightedMatrixHandler.AddEdge(Matrix, Vertices, _graph.GetEdge(start, end));
                         DrawingHelpers.DrawWeightedEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, Matrix[Vertices.IndexOf(start)][Vertices.IndexOf(end)].Value.ToString());
                     }
                     else
                     {
-                        Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, start, end);
                         if (GraphType.Undirected == _graph.GetGraphType)
-                            Matrix = AdjacencyMatrixHandler.AddEdge(Matrix, Vertices, end, start);
+                            Matrix.AddEdge(Vertices, end, start);
                         DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, _graph.GetGraphType);
                     }
                 }
@@ -409,10 +413,8 @@ namespace Graph_Constructor
             Vertex newVertex = new Vertex(_graph.GetNextVertexId, mouseLocation);
             _graph.AddVertex(newVertex);
             Vertices.Add(newVertex);
-            //if (GraphType.Weighted == _graph.GetGraphType)
-            //    Matrix = WeightedMatrixHandler.AddVertex(Matrix, Vertices.Count);
-            //else
-            Matrix = AdjacencyMatrixHandler.AddVertex(Matrix, Vertices.Count);
+            Matrix.AddVertex(Vertices.Count);
+
             var temp = new ObservableCollection<MatrixCellValue>
             {
                 new MatrixCellValue(0)
@@ -421,6 +423,7 @@ namespace Graph_Constructor
 
             DrawingHelpers.DrawVertexOnCanvas(DrawingArea, newVertex.Id.ToString(), newVertex.Location);
             _previousSelectedVertex = null;
+            _currentSelectedVertex = null;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -528,10 +531,8 @@ namespace Graph_Constructor
             _graph = new Graph(graphType);
 
             IsWeightedGraph = GraphType.Weighted == graphType;
-            if (GraphType.Weighted == _graph.GetGraphType)
-                Matrix = WeightedMatrixHandler.CreateWeightedMatrix(new(), new());
-            else
-                Matrix = AdjacencyMatrixHandler.CreateAdjacencyMatrix(new(), new());
+            Matrix = new AdjacencyMatrix(graphType);
+
             GraphTypePopup.Visibility = Visibility.Collapsed;
             GraphTypePopupBlurEffect.Effect = null;
             DrawingArea.IsEnabled = true;
@@ -574,62 +575,65 @@ namespace Graph_Constructor
             textBox.SelectAll();
         }
 
+        private int _prevValue;
+        private string _prevCell;
         private void Cell_TextChanged(object sender, TextChangedEventArgs e)
         {
             TextBox textBox = (TextBox)sender;
             if (textBox.IsFocused)
             {
-                BindingExpression bindingExpression = textBox.GetBindingExpression(TextBox.TextProperty);
-                bindingExpression.UpdateSource();
-
-                Vertex start = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex)));
-                Vertex end = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)));
-
-                //if (GraphType.Weighted == _graph.GetGraphType)
-                //{
-                //    if (textBox.Text == "∞")
-                //    {
-                //        ArrowLine edge = DrawingArea.Children.OfType<ArrowLine>().Where(x => x.Tag.ToString() == new string($"{start.Id} {end.Id}")).First();
-                //        if (edge is not null)
-                //        {
-                //            RemoveWeightedEdge(start, end, textBox.Tag.ToString());
-                //            DrawingArea.Children.Remove(edge);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        if (_graph.GetEdge(start, end) is not null)
-                //        {
-                //            _graph.UpdateEdgeWeight(start, end, int.Parse(textBox.Text));
-                //        }
-                //        else
-                //        {
-                //            AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
-                //            _graph.AddEdge(start, end, int.Parse(textBox.Text));
-                //        }
-                //        DrawingHelpers.UpdateWeightOnCanvas(DrawingArea, textBox.Tag.ToString(), textBox.Text);
-                //    }
-                //}
-                //Keyboard.ClearFocus();
-                TextBlock? weightBlock = DrawingArea.Children.OfType<TextBlock>()
-                        .Where(x => x.Tag.ToString() == textBox.Tag.ToString()).FirstOrDefault();
-                if (textBox.Text == "∞" && weightBlock != null)
+                try
                 {
-                    ArrowLine edge = DrawingArea.Children.OfType<ArrowLine>().Where(x => x.Tag.ToString() == new string($"{start.Id} {end.Id}")).First();
-                    RemoveWeightedEdge(start, end, textBox.Tag.ToString());
-                    DrawingArea.Children.Remove(edge);
-                }
-                if (textBox.Text != "-" && textBox.Text != "∞")
-                {
-                    if (_graph.GetEdge(start, end) != null)
-                        _graph.UpdateEdgeWeight(start, end, int.Parse(textBox.Text));
+                    var bindingExpression = BindingOperations.GetMultiBindingExpression(textBox, TextBox.TextProperty);
+                    bindingExpression.UpdateSource();
+
+                    bool isValid = int.TryParse(textBox.Text, out int value) && value != 0;
+                    if (_prevValue == value && _prevCell == textBox.Tag.ToString())
+                        return;
+                    string[] vertices = textBox.Tag.ToString()!.Split(" ");
+                    Vertex start = _graph.GetVertexById(int.Parse(vertices[0]));
+                    Vertex end = _graph.GetVertexById(int.Parse(vertices[1]));
+
+                    if (isValid)
+                    {
+                        if (_graph.GetEdge(start, end) is not null)
+                            _graph.UpdateEdgeWeight(start, end, int.Parse(textBox.Text));
+                        else
+                        {
+                            AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
+                            _graph.AddEdge(start, end, value);
+                            if (_graph.GetGraphType == GraphType.Undirected)
+                                Matrix.AddEdge(Vertices, end, start);
+                        }
+                        if (_graph.GetGraphType == GraphType.Weighted)
+                            DrawingHelpers.UpdateWeightOnCanvas(DrawingArea, textBox.Tag.ToString()!, textBox.Text);
+                        else
+                            DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, _graph.GetGraphType);
+                    }
                     else
                     {
-                        AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
-                        _graph.AddEdge(start, end, int.Parse(textBox.Text));
+                        ArrowLine? edge = DrawingArea.Children.OfType<ArrowLine>()
+                            .Where(x => x.Tag.ToString() == textBox.Tag.ToString() 
+                            || x.Tag.ToString() == $"{end.Id} {start.Id}").FirstOrDefault();
+                        if (edge is not null)
+                        {
+                            if (_graph.GetGraphType == GraphType.Weighted)
+                                RemoveWeightedEdge(start, end, textBox.Tag.ToString());
+                            else
+                                RemoveEdge(start, end);
+                            if (_graph.GetGraphType == GraphType.Undirected)
+                                Matrix.RemoveEdge(Vertices, end, start);
+                            DrawingArea.Children.Remove(edge);
+                        }
                     }
-                    DrawingHelpers.UpdateWeightOnCanvas(DrawingArea, textBox.Tag.ToString(), textBox.Text);
+                    _prevValue = value;
+                    _prevCell = textBox.Tag.ToString();
                 }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "An error occured. Try again!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                Keyboard.ClearFocus();
             }
         }
 
@@ -637,6 +641,8 @@ namespace Graph_Constructor
         {
             DrawingHelpers.UnHighlightSelection(_currentSelectedVertex);
             DrawingHelpers.UnHighlightSelection(_previousSelectedVertex);
+            _previousSelectedVertex = null;
+            _currentSelectedVertex = null;
         }
 
         private void GetPrevious_Click(object sender, RoutedEventArgs e)

@@ -62,6 +62,12 @@ namespace Graph_Constructor.Models
 
             var srcEdge = new Edge(from, to);
             _adjacencyList[from].Add(srcEdge);
+            _adjacencyList[to].Add(srcEdge);
+            //if (_type == GraphType.Undirected)
+            //{
+            //    srcEdge = new Edge(to, from);
+            //    _adjacencyList[from].Add(srcEdge);
+            //}
         }
 
         public void AddEdge(Vertex from, Vertex to, int cost)
@@ -86,10 +92,12 @@ namespace Graph_Constructor.Models
             Validate(() => _adjacencyList.ContainsKey(from));
             Validate(() => _adjacencyList.ContainsKey(to));
 
-            var srcEdge = _adjacencyList[from].First(edge => Equals(edge.To, to));
-            //var destEdge = _adjacencyList[to].First(edge => Equals(edge.From, from));
-            _adjacencyList[from].Remove(srcEdge);
-            //_adjacencyList[to].Add(destEdge);
+            var srcEdge = _adjacencyList[from].FirstOrDefault(edge => edge.To.Id == to.Id);
+            if (srcEdge is not null)
+                _adjacencyList[from].Remove(srcEdge);
+            var destEdge = _adjacencyList[to].FirstOrDefault(edge => edge.From.Id == from.Id);
+            if (destEdge is not null)
+                _adjacencyList[to].Remove(destEdge);
         }
 
         public Edge GetEdge(Vertex from, Vertex to)

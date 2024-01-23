@@ -1,31 +1,40 @@
-﻿using System;
+﻿using Graph_Constructor.Enums;
+using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows.Data;
 
 namespace Graph_Constructor.Convertes
 {
-    public class MatrixCellValidator : IValueConverter
+    public class MatrixCellValidator : IMultiValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        private GraphType _graphType;
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if ((int)value == int.MaxValue) return "∞";
-            if ((int)value == -1) return "-";
-            return value.ToString();
+            var graphType = (GraphType)values[1];
+            _graphType = graphType;
+            if ((int)values[0] == -1) return "-";
+            if ((int)values[0] == int.MaxValue && graphType == GraphType.Weighted) return "∞";
+            return values[0].ToString();
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            string v = value.ToString();
+            string? v = value.ToString();
             if (!string.IsNullOrEmpty(v))
             {
                 if (v == "-")
-                    return -1;
+                    return new object[] { -1, _graphType };
                 Regex regex = new Regex(@"[^0-9]+$");
                 if (regex.IsMatch(v))
-                    return Binding.DoNothing;
-                return int.Parse(v);
+                    return null;
+                if (_graphType != GraphType.Weighted)
+                {
+                    return new object[] { 1, _graphType };
+                }
+                return new object[] { v, _graphType }; 
             }
-            return int.MaxValue;
+            return new object[] { _graphType == GraphType.Weighted ? int.MaxValue : 0, _graphType };
         }
     }
 }

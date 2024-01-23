@@ -312,7 +312,8 @@ namespace Graph_Constructor.Helpers
 
         public static void UpdateWeightOnCanvas(Canvas canvas, string weightId, string newWeight)
         {
-            TextBlock? weightBlock = canvas.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightId || x.Tag.ToString() == weightId.Reverse()).FirstOrDefault();
+            TextBlock? weightBlock = canvas.Children.OfType<TextBlock>()
+                .Where(x => x.Tag.ToString() == weightId || x.Tag.ToString() == weightId.Reverse()).FirstOrDefault();
             if (weightBlock == null && newWeight != "∞")
             {
                 string[] vertices = weightId.Split(' ');
