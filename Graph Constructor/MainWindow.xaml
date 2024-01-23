@@ -226,7 +226,7 @@
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Tag="BellmanCalaba" Content="Bellman-Calaba"/>
                 <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Tag="FordFulkersson" Content="Ford-Fulkersson"/>
                 <!--<RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Tag="Djikstra" Content="Djikstra"/>-->
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsUndirectedGraph}" Name="RunSpanningTree" Content="Spanning Tree"/>
+                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunSpanningTree" Tag="Prim" Content="Minimum Spanning Tree(Prim's)"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0 5 0 0" VerticalAlignment="Center">
                 <xctk:WatermarkTextBox Height="25" x:Name="StartVertex" Watermark="Enter start" TextAlignment="Center" FontSize="12" Width="65">

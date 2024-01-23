@@ -471,6 +471,7 @@ namespace Graph_Constructor
                 "Ford" => new Ford(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
                 "BellmanCalaba" => new BellmanCalaba(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
                 "FordFulkersson" => new FordFulkersson(_graph, DrawingArea, _graph.GetVertexById(1), _graph.GetVertexById(start)),
+                "Prim" => new Prim(_graph, DrawingArea, _graph.GetVertexById(start)),
                 _ => null!
             };
 
