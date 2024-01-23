@@ -317,7 +317,7 @@ namespace Graph_Constructor
             }
             else if ((_currentSelectedVertex = SelectedVertex(e)) != null)
             {
-                Vertex vertexToRemove = Vertices.Where(vertex => vertex.Id.ToString() == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)).First();
+                Vertex vertexToRemove = Vertices.Where(vertex => vertex.Id.ToString() == DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)).FirstOrDefault();
                 _graph.RemoveVertex(vertexToRemove);
                 Matrix.RemoveVertex(vertexToRemove);
 

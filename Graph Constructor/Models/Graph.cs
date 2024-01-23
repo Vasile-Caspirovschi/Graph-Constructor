@@ -47,6 +47,7 @@ namespace Graph_Constructor.Models
         {
             foreach (var vertex in AdjacencyList.Where(vertex => vertex.Key.Id > removedId))
                 vertex.Key.Id -= 1;
+            _nextVertexId -= 1;
         }
 
         private void Validate(Func<bool> condition)
@@ -62,12 +63,8 @@ namespace Graph_Constructor.Models
 
             var srcEdge = new Edge(from, to);
             _adjacencyList[from].Add(srcEdge);
-            _adjacencyList[to].Add(srcEdge);
-            //if (_type == GraphType.Undirected)
-            //{
-            //    srcEdge = new Edge(to, from);
-            //    _adjacencyList[from].Add(srcEdge);
-            //}
+            if (_type == GraphType.Undirected)
+                _adjacencyList[to].Add(srcEdge);
         }
 
         public void AddEdge(Vertex from, Vertex to, int cost)
