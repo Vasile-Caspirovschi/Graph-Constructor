@@ -19,7 +19,7 @@ namespace Graph_Constructor.Models
             var temp = new ObservableCollection<MatrixCellValue>();
             for (int i = 0; i < Count; i++)
                 for (int j = this[i].Count; j < numberOfVertices; j++)
-                    this[i].Add(new MatrixCellValue(0, new string($"{i + 1} {j + 1}"), _graphType));
+                    this[i].Add(new MatrixCellValue(GraphType == GraphType.Weighted ? int.MaxValue : 0, new string($"{i + 1} {j + 1}"), _graphType));
 
             for (int index = 0; index < numberOfVertices; index++)
                 temp.Add(new MatrixCellValue(GraphType == GraphType.Weighted ? int.MaxValue : 0, new string($"{numberOfVertices} {index + 1}"), _graphType));
