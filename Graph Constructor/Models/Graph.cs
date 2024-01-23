@@ -119,7 +119,13 @@ namespace Graph_Constructor.Models
 
             foreach (var vertex in _adjacencyList)
                 foreach (var adjacent in vertex.Value)
+                {
                     result.Add(adjacent);
+                    if (_type == GraphType.Undirected)
+                    {
+                        result.Add(new Edge(adjacent.To, adjacent.From, adjacent.Cost));
+                    }
+                }
             return result;
         }
 

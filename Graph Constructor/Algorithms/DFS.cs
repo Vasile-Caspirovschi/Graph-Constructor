@@ -2,6 +2,7 @@
 using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -44,7 +45,7 @@ namespace Graph_Constructor.Algorithms
                     await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     foundUnvisitedVertex = false;
                 }
-                foreach (Edge edge in graph.AdjacencyList[start])
+                foreach (Edge edge in graph.GetAllEdges().Where(ed => ed.From.Id == start.Id))
                 {
                     if (!_visited.Contains(edge.To))
                     {
