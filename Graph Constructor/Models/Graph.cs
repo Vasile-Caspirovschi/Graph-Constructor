@@ -21,6 +21,7 @@ namespace Graph_Constructor.Models
 
         public GraphType GetGraphType { get => _type; }
         public int GetNextVertexId { get => ++_nextVertexId; }
+        public int GetCurrentVertexId { get => _nextVertexId; }
 
         public void AddVertex(Vertex vertex)
         {

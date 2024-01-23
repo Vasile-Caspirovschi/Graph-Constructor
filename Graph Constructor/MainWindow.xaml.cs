@@ -450,7 +450,7 @@ namespace Graph_Constructor
         private async void RunAlgorithm_Click(object sender, RoutedEventArgs e)
         {
             int start = 0;
-            if (!(int.TryParse(StartVertex.Text, out start) && start > 0))
+            if (!(int.TryParse(StartVertex.Text, out start) && start > 0 && start <= _graph.GetCurrentVertexId))
                 return;
             var selectedAlgorithm = AlgorithmsPanel.Children.OfType<RadioButton>()
                  .FirstOrDefault(r => r.IsChecked.HasValue && r.IsChecked.Value);
@@ -476,7 +476,7 @@ namespace Graph_Constructor
             algorithm.BindViewProperties(BellmanAlgoResultsMatrix, BellmanResultsVerticalHeader);
             await algorithm.Execute();
             _algorithmSteps = algorithm.GetSolvingSteps();
-            AlgoLogs.Children.Add(algorithm.GetResults().GetLog());
+            AlgoLogs.Children.Insert(0, algorithm.GetResults().GetLog());
             _wasAlgoRunned = true;
             _isAnimation = true;
         }

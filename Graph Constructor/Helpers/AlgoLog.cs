@@ -13,7 +13,7 @@ namespace Graph_Constructor.Helpers
         public AlgoLog(string title, List<int> vertices)
         {
             Title = title;
-            Detail = string.Join("->", vertices);
+            Detail = string.Join("→", vertices);
         }
         public AlgoLog(string title, string details)
         {
@@ -23,13 +23,13 @@ namespace Graph_Constructor.Helpers
 
         public void AddMoreDetails(List<int> vertices)
         {
-            Detail += string.Join("->", vertices);
+            Detail += string.Join("→", vertices);
             Detail += Environment.NewLine;
         }
 
         public void AddMoreDetails(List<int> vertices, string details)
         {
-            Detail += string.Join("->", vertices);
+            Detail += string.Join("→", vertices);
             Detail += Environment.NewLine;
         }
 
@@ -43,6 +43,7 @@ namespace Graph_Constructor.Helpers
             var textBlock = new TextBlock
             {
                 FontSize = 15,
+                Margin = new System.Windows.Thickness(0 ,-5, 0 ,0 ),
                 FontFamily = new FontFamily("Consolas"),
                 Text = ToString()
             };

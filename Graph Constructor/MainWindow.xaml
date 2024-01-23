@@ -292,6 +292,31 @@
                     <TextBlock>SPACE - toggle move</TextBlock>
                     <TextBlock>SHIFT + SPACE - toggle Zoom In</TextBlock>
                     <TextBlock>CTRL + SPACE - toggle Zoom Out</TextBlock>
+                    <TextBlock FontWeight="Bold" Margin="0 5 0 2">Color legend:</TextBlock>
+                    <TextBlock>
+                        <TextBlock.Inlines>
+                            <Run FontWeight="Bold"  Foreground="Red" Text="Red" />
+                            <Run Text="- Visited vertex or edge" />
+                        </TextBlock.Inlines>
+                    </TextBlock>
+                    <TextBlock>
+                        <TextBlock.Inlines>
+                            <Run FontWeight="Bold"  Foreground="Green" Text="Green" />
+                            <Run Text="- Current selected vertex" />
+                        </TextBlock.Inlines>
+                    </TextBlock>
+                    <TextBlock>
+                        <TextBlock.Inlines>
+                            <Run FontWeight="Bold"  Foreground="#279fdb" Text="Blue" />
+                            <Run Text="- Done vertex" />
+                        </TextBlock.Inlines>
+                    </TextBlock>
+                    <TextBlock>
+                        <TextBlock.Inlines>
+                            <Run FontWeight="Bold"  Foreground="#1f54a1" Text="Dark Blue" />
+                            <Run Text="- Edge weight" />
+                        </TextBlock.Inlines>
+                    </TextBlock>
                 </StackPanel>
             </Grid>
         </Grid>
@@ -328,8 +353,9 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Logs" FontFamily="Consolas italic">
-                <StackPanel x:Name="AlgoLogs" Margin="5">
-                </StackPanel>
+                <ScrollViewer>
+                    <StackPanel x:Name="AlgoLogs" Margin="5"/>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
     </Grid>
