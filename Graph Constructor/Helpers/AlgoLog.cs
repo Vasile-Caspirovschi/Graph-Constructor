@@ -21,6 +21,7 @@ namespace Graph_Constructor.Helpers
         {
             Title = title;
             Detail = details;
+            Detail += Environment.NewLine;
         }
 
         public void AddMoreDetails(Edge edge)

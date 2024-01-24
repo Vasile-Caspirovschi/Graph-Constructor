@@ -17,6 +17,12 @@ namespace Graph_Constructor.Models
             _type = type;
         }
 
+        public Graph(Dictionary<Vertex, List<Edge>> adjacencyList, GraphType type)
+        {
+            _adjacencyList = adjacencyList;
+            _type = type;
+        }
+
         public Dictionary<Vertex, List<Edge>> AdjacencyList { get { return _adjacencyList; } }
 
         public GraphType GetGraphType { get => _type; }

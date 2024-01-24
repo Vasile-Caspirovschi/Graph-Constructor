@@ -8,9 +8,9 @@ namespace Graph_Constructor.Models
 {
     public abstract class Algorithm : DependencyObject
     {
-        protected readonly Graph graph = default!;
+        protected Graph graph = default!;
         protected readonly Canvas drawingArea = default!;
-        protected readonly Vertex start = default!;
+        protected Vertex start = default!;
         protected readonly Vertex? target;
 
         protected Algorithm(Graph graph, Canvas drawingArea, Vertex start, Vertex? target)
