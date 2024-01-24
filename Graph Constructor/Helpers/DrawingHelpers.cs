@@ -14,7 +14,7 @@ namespace Graph_Constructor.Helpers
     {
         const int DIAMETER = 30;
 
-        public static void DrawVertexOnCanvas(Canvas canvas, string title, Point location)
+        public static void DrawVertexOnCanvas(Canvas canvas, string title, Vertex vertex)
         {
             Grid grid = new Grid();
             Ellipse circle = new Ellipse()
@@ -41,8 +41,8 @@ namespace Graph_Constructor.Helpers
             grid.Children.Add(circle);
             grid.Children.Add(vertexText);
 
-            Canvas.SetLeft(grid, location.X);
-            Canvas.SetTop(grid, location.Y);
+            Canvas.SetLeft(grid, vertex.LeftTop.X + vertex.Location.X);
+            Canvas.SetTop(grid, vertex.LeftTop.Y + vertex.Location.Y);
 
             canvas.Children.Add(grid);
         }

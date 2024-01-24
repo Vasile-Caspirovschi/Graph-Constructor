@@ -3,12 +3,14 @@ using Graph_Constructor.Algorithms;
 using Graph_Constructor.Enums;
 using Graph_Constructor.Helpers;
 using Graph_Constructor.Models;
+using Microsoft.Win32;
 using Petzold.Media2D;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -247,7 +249,9 @@ namespace Graph_Constructor
 
                 if (_previousSelectedVertex != null)
                 {
-                    DrawEdge();
+                    Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex))).FirstOrDefault();
+                    Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex))).FirstOrDefault();
+                    DrawEdge(start, end);
                     DrawingArea.Children.Remove(_tempLineOnMouseMove);
                     return;
                 }
@@ -255,7 +259,8 @@ namespace Graph_Constructor
                 return;
             }
             UnselectAll();
-            DrawVertex();
+            var vertex = new Vertex(_graph.GetNextVertexId, Mouse.GetPosition(DrawingArea));
+            DrawVertex(vertex);
         }
 
         private void MoveVertexOnCanvas(object sender, MouseEventArgs e)
@@ -378,11 +383,13 @@ namespace Graph_Constructor
             return null;
         }
 
-        private void DrawEdge()
+        private void DrawEdge(Vertex start, Vertex end, int cost = 1)
         {
-            Vertex start = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_previousSelectedVertex))).FirstOrDefault();
-            Vertex end = Vertices.Where(vertex => vertex.Id == int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex))).FirstOrDefault();
-
+            if (_previousSelectedVertex == null && _currentSelectedVertex == null)
+            {
+                _previousSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, start.Id.ToString());
+                _currentSelectedVertex = DrawingHelpers.FindVertexOnCanvas(DrawingArea, end.Id.ToString());
+            }
             if (!DrawingHelpers.CheckIfEdgeExist(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
             {
                 AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
@@ -406,18 +413,15 @@ namespace Graph_Constructor
             }
         }
 
-        private void DrawVertex()
+        private void DrawVertex(Vertex vertex)
         {
-            Point mouseLocation = Mouse.GetPosition(DrawingArea);
             var allVertices = DrawingArea.Children.OfType<Grid>().ToList();
-
-            foreach (var vertex in allVertices)
-                if (DrawingHelpers.IsVertexCollision(mouseLocation, new Point(Canvas.GetLeft(vertex) - 15, Canvas.GetTop(vertex) - 15)))
+            foreach (var v in allVertices)
+                if (DrawingHelpers.IsVertexCollision(vertex.Location, new Point(Canvas.GetLeft(v) - 15, Canvas.GetTop(v) - 15)))
                     return;
 
-            Vertex newVertex = new Vertex(_graph.GetNextVertexId, mouseLocation);
-            _graph.AddVertex(newVertex);
-            Vertices.Add(newVertex);
+            _graph.AddVertex(vertex);
+            Vertices.Add(vertex);
             Matrix.AddVertex(Vertices.Count);
 
             var temp = new ObservableCollection<MatrixCellValue>
@@ -426,9 +430,10 @@ namespace Graph_Constructor
             };
             AdjList.Add(temp);
 
-            DrawingHelpers.DrawVertexOnCanvas(DrawingArea, newVertex.Id.ToString(), newVertex.Location);
+            DrawingHelpers.DrawVertexOnCanvas(DrawingArea, vertex.Id.ToString(), vertex);
             _previousSelectedVertex = null;
             _currentSelectedVertex = null;
+            return;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -457,7 +462,7 @@ namespace Graph_Constructor
         private async void RunAlgorithm_Click(object sender, RoutedEventArgs e)
         {
             int start = 0;
-            if (!(int.TryParse(StartVertex.Text, out start) && start > 0 && start <= _graph.GetCurrentVertexId))
+            if (!(int.TryParse(StartVertex.Text, out start) && start > 0 && start <= _graph.CurrentVertexId))
                 return;
             var selectedAlgorithm = AlgorithmsPanel.Children.OfType<RadioButton>()
                  .FirstOrDefault(r => r.IsChecked.HasValue && r.IsChecked.Value);
@@ -480,7 +485,7 @@ namespace Graph_Constructor
                 Source = ExecutionSpeedSlider,
                 Mode = BindingMode.OneWay
             });
-
+            ClearAnimation();
             algorithm.BindViewProperties(BellmanAlgoResultsMatrix, BellmanResultsVerticalHeader);
             await algorithm.Execute();
             _algorithmSteps = algorithm.GetSolvingSteps();
@@ -490,6 +495,11 @@ namespace Graph_Constructor
         }
 
         private void ClearCanvas_Click(object sender, RoutedEventArgs e)
+        {
+            ClearCanvas();
+        }
+
+        private void ClearCanvas()
         {
             if (_wasAlgoRunned)
             {
@@ -535,7 +545,11 @@ namespace Graph_Constructor
                 graphType = GraphType.Weighted;
             if (btn.Name == "DirectedGraph")
                 graphType = GraphType.Directed;
+            InitializeNewGraph(graphType);
+        }
 
+        private void InitializeNewGraph(GraphType graphType)
+        {
             _graph = new Graph(graphType);
 
             IsWeightedGraph = GraphType.Weighted == graphType;
@@ -546,16 +560,8 @@ namespace Graph_Constructor
             GraphTypePopupBlurEffect.Effect = null;
             DrawingArea.IsEnabled = true;
         }
-        //void OnPropertyChanged(string propertyName)
-        //{
-        //    var handler = PropertyChanged;
-        //    if (handler != null)
-        //    {
-        //        handler(this, new PropertyChangedEventArgs(propertyName));
-        //    }
-        //}
 
-        protected virtual void OnPropertyChanged( string propertyName)
+        protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -589,7 +595,7 @@ namespace Graph_Constructor
             textBox.SelectAll();
         }
 
-        
+
 
         private void Cell_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -693,6 +699,85 @@ namespace Graph_Constructor
             else
             {
                 Navigation.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void SaveGraph_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new();
+            saveFileDialog.Filter = "Text file (*.txt)|*.txt";
+            saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (saveFileDialog.ShowDialog() == false)
+                return;
+            string fileContent = $"{_graph.GetGraphType}";
+            fileContent += Environment.NewLine;
+            foreach (var edge in _graph.GetAllEdges())
+            {
+                fileContent += $"{edge.From.Id} {edge.To.Id}";
+                if (_graph.GetGraphType == GraphType.Weighted)
+                    fileContent += $" {edge.Cost}";
+                fileContent += Environment.NewLine;
+            }
+            File.WriteAllText(saveFileDialog.FileName, fileContent);
+        }
+
+        private void ReadGraph_Click(object sender, RoutedEventArgs e)
+        {
+            ClearCanvas();
+            OpenFileDialog openFileDialog = new();
+            openFileDialog.Filter = "Text file (*.txt)|*.txt";
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (openFileDialog.ShowDialog() == false)
+                return;
+            var fileContent = File.ReadAllLines(openFileDialog.FileName);
+
+            var graphType = (GraphType)Enum.Parse(typeof(GraphType), fileContent[0]);
+            InitializeNewGraph(graphType);
+
+            for (int i = 1; i < fileContent.Length; i++)
+            {
+                var data = fileContent[i].Split(' ', ',', ';');
+                int startId = int.Parse(data[0]);
+                int endId = int.Parse(data[1]);
+                Vertex? start = _graph.CheckIfVertexExists(startId) ? _graph.GetVertexById(startId)
+                    : new Vertex(startId, GenerateRandomPointOnCanvas(),
+                    new Point((DrawingArea.Width - ZoomingPanel.ActualWidth) / 2, (DrawingArea.Height - ZoomingPanel.ActualHeight) / 2));
+                Vertex? end = _graph.CheckIfVertexExists(endId) ? _graph.GetVertexById(endId)
+                    : new Vertex(endId, GenerateRandomPointOnCanvas(),
+                    new Point((DrawingArea.Width - ZoomingPanel.ActualWidth) / 2, (DrawingArea.Height - ZoomingPanel.ActualHeight) / 2)); ;
+                if (!_graph.CheckIfVertexExists(startId))
+                    DrawVertex(start);
+                if (!_graph.CheckIfVertexExists(endId))
+                    DrawVertex(end);
+                int cost = 1;
+                if (graphType == GraphType.Weighted)
+                    cost = int.Parse(data[2]);
+
+                DrawEdge(start, end, cost);
+            }
+            _graph.CurrentVertexId = _graph.AdjacencyList.Keys.Count;
+        }
+
+        private Point GenerateRandomPointOnCanvas()
+        {
+            var random = new Random(Guid.NewGuid().GetHashCode());
+            int limx1 = 50, limx2 = (int)ZoomingPanel.ActualWidth - 50,
+                limy1 = limx1, limy2 = (int)ZoomingPanel.ActualHeight - 50;
+            int x = random.Next(limx1, limx2);
+            int y = random.Next(limy1, limy2);
+            return new Point(x, y);
+        }
+
+        private void ShowFormatInfo_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as ToggleButton;
+            if (button.IsChecked.HasValue && button.IsChecked.Value)
+            {
+                InfoFormat.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                InfoFormat.Visibility = Visibility.Collapsed;
             }
         }
     }

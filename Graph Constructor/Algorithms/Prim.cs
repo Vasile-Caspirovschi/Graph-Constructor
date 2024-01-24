@@ -14,7 +14,7 @@ namespace Graph_Constructor.Algorithms
         public Prim(Graph graph, Canvas drawingArea, Vertex from) : base(graph, drawingArea, from, null)
         {
             MST = new();
-            Steps = new(drawingArea, nameof(Prim));
+            Steps = new(drawingArea,nameof(Prim));
             base.graph = new Graph(graph.AdjacencyList, Enums.GraphType.Undirected);
         }
 

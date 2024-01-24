@@ -202,6 +202,9 @@
         <PathGeometry x:Key="Previous" Figures="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4C7.59,4 4,7.59 4,12C4,16.41 7.59,20 12,20C16.41,20 20,16.41 20,12C20,7.59 16.41,4 12,4M16,8V16L11,12M10,8V16H8V8"/>
         <PathGeometry x:Key="Navigation" Figures="M12 2L16 6H13V13.85L19.53 17.61L21 15.03L22.5 20.5L17 21.96L18.53 19.35L12 15.58L5.47 19.35L7 21.96L1.5 20.5L3 15.03L4.47 17.61L11 13.85V6H8L12 2M21 5H19V3H21V5M22 10V12H18V10H19V8H18V6H21V10H22Z"/>
         <PathGeometry x:Key="Minus" Figures="M19,13H5V11H19V13Z"/>
+        <PathGeometry x:Key="Save" Figures="M14,2H6C4.89,2 4,2.89 4,4V20C4,21.11 4.89,22 6,22H18C19.11,22 20,21.11 20,20V8L14,2M12,19L8,15H10.5V12H13.5V15H16L12,19M13,9V3.5L18.5,9H13Z"/>
+        <PathGeometry x:Key="Read" Figures="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13.5,16V19H10.5V16H8L12,12L16,16H13.5M13,9V3.5L18.5,9H13Z"/>
+        <PathGeometry x:Key="Info" Figures="M11 9H13V7H11V9M14 17V15H13V11H10V13H11V15H10V17H14M5 3H19C20.1 3 21 3.89 21 5V19C21 19.53 20.79 20.04 20.41 20.41C20.04 20.79 19.53 21 19 21H5C4.47 21 3.96 20.79 3.59 20.41C3.21 20.04 3 19.53 3 19V5C3 3.89 3.89 3 5 3M19 19V5H5V19H19Z"/>
     </Window.Resources>
     <Grid Name="grid">
         <Grid.ColumnDefinitions>
@@ -218,16 +221,23 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal" x:Name="AlgorithmsPanel"  VerticalAlignment="Top">
-                <Label DockPanel.Dock="Left" FontWeight="Bold">Select algorithm:</Label>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Tag="DFS" Content="DFS"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Tag="BFS" Content="BFS"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFord" Tag="Ford" Content="Ford"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Tag="BellmanCalaba" Content="Bellman-Calaba"/>
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Tag="FordFulkersson" Content="Ford-Fulkersson"/>
-                <!--<RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Tag="Djikstra" Content="Djikstra"/>-->
-                <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunSpanningTree" Tag="Prim" Content="Minimum Spanning Tree(Prim's)"/>
-            </StackPanel>
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" x:Name="AlgorithmsPanel"  VerticalAlignment="Top">
+                    <Label DockPanel.Dock="Left" FontWeight="Bold">Select algorithm:</Label>
+                    <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunDFS" Tag="DFS" Content="DFS"/>
+                    <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" Name="RunBFS" Tag="BFS" Content="BFS"/>
+                    <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFord" Tag="Ford" Content="Ford"/>
+                    <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunBellmanCalaba" Tag="BellmanCalaba" Content="Bellman-Calaba"/>
+                    <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunFordFulkersson" Tag="FordFulkersson" Content="Ford-Fulkersson"/>
+                    <!--<RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunDjikstra" Tag="Djikstra" Content="Djikstra"/>-->
+                    <RadioButton GroupName="Algorithm" VerticalContentAlignment="Center" Height="20" Margin="0 0 5 0" IsEnabled="{Binding IsWeightedGraph}" Name="RunSpanningTree" Tag="Prim" Content="Minimum Spanning Tree(Prim's)"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <ToggleButton x:Name="ShowFormatInfo" Margin="10 0 0 0" Style="{StaticResource iToggleButtonStyle}" Click="ShowFormatInfo_Click" IsChecked="True" Content="{DynamicResource Info}"/>
+                    <Button x:Name="ReadGraph" Click="ReadGraph_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Read graph " Content="{DynamicResource Read}"/>
+                    <Button x:Name="SaveGraph" Click="SaveGraph_Click" Margin="5 0 0 0" Style="{StaticResource ButtonStyle}" Tag="Save graph " Content="{DynamicResource Save}"/>
+                </StackPanel>
+            </DockPanel>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0 5 0 0" VerticalAlignment="Center">
                 <xctk:WatermarkTextBox Height="25" x:Name="StartVertex" Watermark="Enter start" TextAlignment="Center" FontSize="12" Width="65">
                     <xctk:WatermarkTextBox.IsEnabled>
@@ -259,6 +269,22 @@
                 </DockPanel>
             </StackPanel>
         </Grid>
+        <Grid x:Name="InfoFormat" Panel.ZIndex="10" Grid.RowSpan="2" Grid.ColumnSpan="3" VerticalAlignment="Top" Width="220" HorizontalAlignment="Right" Margin="0 35 150 0">
+            <Rectangle RadiusX="3" RadiusY="3" Fill="#AAFFFFFF" Stroke="LightGray" StrokeThickness="2"/>
+            <StackPanel Orientation="Vertical" Margin="5">
+                <TextBlock FontWeight="Bold" Margin="0 0 0 2">File format for reading graph:</TextBlock>
+                <TextBlock >First line specify graph type:<LineBreak />
+                    <Bold FontSize="10">Weighted, Undirected, Directed </Bold>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">Starting from second line list the edges</TextBlock>
+                <TextBlock TextWrapping="Wrap">Each edge from a new line</TextBlock>
+                <TextBlock TextWrapping="Wrap">E.g:</TextBlock>
+                <TextBlock TextWrapping="Wrap">1 2 4</TextBlock>
+                <TextBlock TextWrapping="Wrap">1,2,4</TextBlock>
+                <TextBlock TextWrapping="Wrap">Delimit the numbers with: " ", "," or ";"</TextBlock>
+                <TextBlock TextWrapping="Wrap">In case of a weighted graph the third number of the edge represents the weight/cost. <LineBreak/>In other cases specify only the start vertex and end. (1,2)</TextBlock>
+            </StackPanel>
+        </Grid>
         <Grid Margin="20 0 10 0" Grid.Row="1">
             <Grid >
                 <Grid.RowDefinitions>
@@ -273,7 +299,7 @@
                         <ab2d:ZoomController Background="Transparent" />
                     </DockPanel>
                 </DockPanel>
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" Name="CanvasParent">
                     <ab2d:ZoomPanel Stretch="None" ViewboxLimits="0 0 1 1" ViewboxMinSize="0.1 0.1" IsViewboxLimited="True"  Name="ZoomingPanel">
                         <Border Name="GraphTypePopupBlurEffect" Background="White" BorderBrush="Black">
                             <Border.Effect>
@@ -297,7 +323,7 @@
             <StackPanel Orientation="Horizontal" Grid.Row="2">
                 <ToggleButton x:Name="ShowGrid" Style="{StaticResource iToggleButtonStyle}" IsChecked="True" Tag="Show Grid " Content="{DynamicResource Grid}"/>
                 <ToggleButton Name="MoveMode" Style="{StaticResource iToggleButtonStyle}" Tag="Move vertices " Content="{DynamicResource Move}"/>
-                <Button x:Name="ClearCanvas" Click="ClearCanvas_Click" Style="{StaticResource ButtonStyle}" Tag="Clear " Content="{DynamicResource Erase}"/>
+                <Button x:Name="ClearCanvasBtn" Click="ClearCanvas_Click" Style="{StaticResource ButtonStyle}" Tag="Clear " Content="{DynamicResource Erase}"/>
                 <StackPanel Orientation="Horizontal">
                     <Button Name="GetPrevious" Click="GetPrevious_Click" Style="{StaticResource ButtonStyle}" Content="{DynamicResource Previous}"/>
                     <Button Name="GetNext" Click="GetNext_Click" Style="{StaticResource ButtonStyle}" Content="{DynamicResource Next}"/>

@@ -27,7 +27,7 @@ namespace Graph_Constructor.Models
 
         public GraphType GetGraphType { get => _type; }
         public int GetNextVertexId { get => ++_nextVertexId; }
-        public int GetCurrentVertexId { get => _nextVertexId; }
+        public int CurrentVertexId { get => _nextVertexId; set => _nextVertexId = value; }
 
         public void AddVertex(Vertex vertex)
         {
@@ -150,5 +150,9 @@ namespace Graph_Constructor.Models
         }
 
         public Vertex GetVertexById(int id) => _adjacencyList.Keys.Single(k => Equals(id, k.Id));
+        public bool CheckIfVertexExists(int id)
+        {
+            return _adjacencyList.Keys.Any(v => v.Id == id);
+        }
     }
 }
