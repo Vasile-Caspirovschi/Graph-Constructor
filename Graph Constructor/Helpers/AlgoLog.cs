@@ -15,7 +15,7 @@ namespace Graph_Constructor.Helpers
         {
             get
             {
-                return _detail.TrimEnd(Environment.NewLine.ToCharArray());
+                return _detail;
             }
             set => _detail = value;
         }
@@ -59,7 +59,7 @@ namespace Graph_Constructor.Helpers
 
         public override string ToString()
         {
-            return $"{Title}\n{Detail}";
+            return $"{Title}\n{Detail.TrimEnd(Environment.NewLine.ToCharArray())}";
         }
 
         public TextBlock GetLog()
