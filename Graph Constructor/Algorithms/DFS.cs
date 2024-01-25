@@ -65,6 +65,7 @@ namespace Graph_Constructor.Algorithms
                     vertices.Pop();
                     DrawingHelpers.MarkVertex(drawingArea, start, Colors.DoneVertex);
                     Steps.Add(new AlgorithmStep().AddMarkedElement(start, Colors.DoneVertex));
+                    await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                 }
             }
         }

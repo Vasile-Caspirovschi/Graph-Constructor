@@ -94,20 +94,26 @@ namespace Graph_Constructor.Helpers
             for (int i = canvas.Children.Count - 1; i >= 0; i += -1)
             {
                 UIElement child = canvas.Children[i];
-                if (!(child is ArrowLine))
-                    continue;
-                ArrowLine edge = child as ArrowLine;
-                if (edge.Tag.ToString().Split(' ')[0] == vertexToRemove.Id.ToString()
-                || edge.Tag.ToString().Split(' ')[1] == vertexToRemove.Id.ToString())
-
-                    canvas.Children.Remove(edge);
-                if (graphType == GraphType.Weighted)
+                if (child is ArrowLine)
                 {
-                    TextBlock edgeBlock = child as TextBlock;
-                    if (edgeBlock.Tag.ToString().Split(' ')[0] == vertexToRemove.Id.ToString()
-                    || edgeBlock.Tag.ToString().Split(' ')[1] == vertexToRemove.Id.ToString())
-                        canvas.Children.Remove(edgeBlock);
+                    ArrowLine edge = child as ArrowLine;
+                    if (edge.Tag.ToString().Split(' ')[0] == vertexToRemove.Id.ToString()
+                    || edge.Tag.ToString().Split(' ')[1] == vertexToRemove.Id.ToString())
+
+                        canvas.Children.Remove(edge);
                 }
+                if (graphType == GraphType.Weighted && child is TextBlock)
+                {
+                    var text = child as TextBlock;
+                    if (text.Tag is not null)
+                    {
+                        TextBlock edgeBlock = child as TextBlock;
+                        if (edgeBlock.Tag.ToString().Split(' ')[0] == vertexToRemove.Id.ToString()
+                        || edgeBlock.Tag.ToString().Split(' ')[1] == vertexToRemove.Id.ToString())
+                            canvas.Children.Remove(edgeBlock);
+                    }
+                }
+
             }
         }
 
@@ -390,9 +396,10 @@ namespace Graph_Constructor.Helpers
         public static bool IsVertexCollision(Point point1, Point point2)
         {
             Point delta = new Point();
+            var diameter = DIAMETER + 10;
             delta.X = point1.X - point2.X - DIAMETER;
             delta.Y = point1.Y - point2.Y - DIAMETER;
-            return delta.X * delta.X + delta.Y * delta.Y <= DIAMETER * DIAMETER;
+            return delta.X * delta.X + delta.Y * delta.Y <= diameter * diameter;
         }
 
         public static void MarkVertex(Canvas canvas, Vertex vertex, System.Drawing.Color color)

@@ -400,7 +400,7 @@
                         </Grid.ColumnDefinitions>
                         <ItemsControl Grid.Column="1" x:Name="MatrixHorizontalHeader" ItemsSource="{Binding Source={StaticResource VerticesList}}" ItemsPanel="{DynamicResource HorizontalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                         <ItemsControl Grid.Row="1" Grid.Column="1" x:Name="AdjacencyMatrix" ItemsSource="{Binding Matrix}" ItemTemplate="{DynamicResource Matrix}"/>
-                        <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" Margin="0 0 5 0" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                        <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" Margin="0 0 5 0" ItemsSource="{Binding Source={StaticResource VerticesList}}" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                         <ItemsControl Grid.Row="2" x:Name="BellmanResultsVerticalHeader" Margin="0 0 5 0" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource BellmanHeaderCell}"/>
                         <ItemsControl Grid.Row="2" Grid.Column="1" x:Name="BellmanAlgoResultsMatrix"  ItemTemplate="{DynamicResource BellmanResultsMatrix}"/>
                     </Grid>

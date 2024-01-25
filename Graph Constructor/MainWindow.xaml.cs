@@ -6,7 +6,6 @@ using Graph_Constructor.Models;
 using Microsoft.Win32;
 using Petzold.Media2D;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -235,6 +234,7 @@ namespace Graph_Constructor
 
         private void DrawGraphElement_Click(object sender, MouseButtonEventArgs e)
         {
+            _isReadFromFile = false;
             _currentSelectedVertex = SelectedVertex(e);
             if (MoveMode.IsChecked == true)
                 return;
@@ -261,7 +261,7 @@ namespace Graph_Constructor
                 return;
             }
             UnselectAll();
-            var vertex = new Vertex(_graph.GetNextVertexId, Mouse.GetPosition(DrawingArea));
+            var vertex = new Vertex(_graph.CurrentVertexId, Mouse.GetPosition(DrawingArea));
             DrawVertex(vertex);
         }
 
@@ -315,7 +315,8 @@ namespace Graph_Constructor
             Matrix.RemoveEdge(Vertices, start, end);
             _graph.RemoveEdge(start, end);
             AdjList[Vertices.IndexOf(start)].Remove(AdjList[Vertices.IndexOf(start)].Where(vertex => vertex.Value == end.Id).First());
-            DrawingArea.Children.Remove(DrawingArea.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightBlockId).First());
+            var weightBlock = DrawingArea.Children.OfType<TextBlock>().Where(x => x.Tag.ToString() == weightBlockId).First();
+            DrawingArea.Children.Remove(weightBlock);
         }
         private void DeleteGraphElement_Click(object sender, MouseButtonEventArgs e)
         {
@@ -348,7 +349,7 @@ namespace Graph_Constructor
                 }
 
                 DrawingArea.Children.Remove(_currentSelectedVertex);
-                DrawingHelpers.RemoveIncidentEdgesOfVertex(DrawingArea, vertexToRemove);
+                DrawingHelpers.RemoveIncidentEdgesOfVertex(DrawingArea, vertexToRemove, _graph.GetGraphType);
                 DrawingHelpers.UpdateVertexIdAfterRemoving(DrawingArea, vertexToRemove.Id);
             }
         }
@@ -392,7 +393,7 @@ namespace Graph_Constructor
                 AdjList[Vertices.IndexOf(start)].Insert(0, new MatrixCellValue(end.Id));
                 if (!DrawingHelpers.CheckForOppositeEdge(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
                 {
-                    _graph.AddEdge(start, end);
+                    _graph.AddEdge(start, end, cost);
                     if (_isReadFromFile)
                         Matrix[start.Id - 1][end.Id - 1].Value = cost;
                     else
@@ -421,7 +422,7 @@ namespace Graph_Constructor
             foreach (var v in allVertices)
                 if (DrawingHelpers.IsVertexCollision(vertex.Location, new Point(Canvas.GetLeft(v) - 15, Canvas.GetTop(v) - 15)))
                     return;
-
+            vertex.Id = _graph.GetNextVertexId;
             _graph.AddVertex(vertex);
             Vertices.Add(vertex);
             if (!_isReadFromFile)
@@ -526,6 +527,7 @@ namespace Graph_Constructor
                     Radius = 5
                 };
                 DrawingArea.IsEnabled = false;
+                AlgoLogs.Children.Clear();
             }
         }
 
@@ -708,12 +710,19 @@ namespace Graph_Constructor
 
         private void SaveGraph_Click(object sender, RoutedEventArgs e)
         {
+            if (_graph == null || _graph.GetAllEdges().Count == 0)
+            {
+                MessageBox.Show("Construct a graph before saving it!", "Invalid opperation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             SaveFileDialog saveFileDialog = new();
             saveFileDialog.Filter = "Text file (*.txt)|*.txt";
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (saveFileDialog.ShowDialog() == false)
                 return;
             string fileContent = $"{_graph.GetGraphType}";
+            fileContent += $" {_graph.GetVerticesCount()}";
             fileContent += Environment.NewLine;
             foreach (var edge in _graph.GetAllEdges())
             {
@@ -727,6 +736,7 @@ namespace Graph_Constructor
 
         private void ReadGraph_Click(object sender, RoutedEventArgs e)
         {
+
             _isReadFromFile = true;
             ClearCanvas();
             OpenFileDialog openFileDialog = new();
@@ -734,31 +744,39 @@ namespace Graph_Constructor
             openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (openFileDialog.ShowDialog() == false)
                 return;
-            var fileContent = File.ReadAllLines(openFileDialog.FileName);
-            var config = fileContent[0].Split(' ', ',', ';');
-            var graphType = (GraphType)Enum.Parse(typeof(GraphType), config[0]);
-            InitializeNewGraph(graphType);
-            Matrix.Initialize(int.Parse(config[1]));
-            for (int i = 1; i < fileContent.Length; i++)
+            try
             {
-                var data = fileContent[i].Split(' ', ',', ';');
-                int startId = int.Parse(data[0]);
-                int endId = int.Parse(data[1]);
-                Vertex? start = _graph.CheckIfVertexExists(startId) ? _graph.GetVertexById(startId)
-                    : new Vertex(startId, GenerateRandomPointOnCanvas(),
-                    new Point((DrawingArea.Width - ZoomingPanel.ActualWidth) / 2, (DrawingArea.Height - ZoomingPanel.ActualHeight) / 2));
-                Vertex? end = _graph.CheckIfVertexExists(endId) ? _graph.GetVertexById(endId)
-                    : new Vertex(endId, GenerateRandomPointOnCanvas(),
-                    new Point((DrawingArea.Width - ZoomingPanel.ActualWidth) / 2, (DrawingArea.Height - ZoomingPanel.ActualHeight) / 2)); ;
-                if (!_graph.CheckIfVertexExists(startId))
-                    DrawVertex(start);
-                if (!_graph.CheckIfVertexExists(endId))
-                    DrawVertex(end);
-                int cost = 1;
-                if (graphType == GraphType.Weighted)
-                    cost = int.Parse(data[2]);
+                var fileContent = File.ReadAllLines(openFileDialog.FileName);
+                var config = fileContent[0].Split(' ', ',', ';');
+                var graphType = (GraphType)Enum.Parse(typeof(GraphType), config[0]);
+                InitializeNewGraph(graphType);
+                Matrix.Initialize(int.Parse(config[1]));
+                for (int i = 1; i < fileContent.Length; i++)
+                {
+                    var data = fileContent[i].Split(' ', ',', ';');
+                    int startId = int.Parse(data[0]);
+                    int endId = int.Parse(data[1]);
+                    Vertex? start = _graph.CheckIfVertexExists(startId) ? _graph.GetVertexById(startId)
+                        : new Vertex(startId, GenerateRandomPointOnCanvas(),
+                        new Point((DrawingArea.Width - ZoomingPanel.ActualWidth) / 2, (DrawingArea.Height - ZoomingPanel.ActualHeight) / 2));
+                    Vertex? end = _graph.CheckIfVertexExists(endId) ? _graph.GetVertexById(endId)
+                        : new Vertex(endId, GenerateRandomPointOnCanvas(),
+                        new Point((DrawingArea.Width - ZoomingPanel.ActualWidth) / 2, (DrawingArea.Height - ZoomingPanel.ActualHeight) / 2)); ;
+                    if (!_graph.CheckIfVertexExists(startId))
+                        DrawVertex(start);
+                    if (!_graph.CheckIfVertexExists(endId))
+                        DrawVertex(end);
+                    int cost = 1;
+                    if (graphType == GraphType.Weighted)
+                        cost = int.Parse(data[2]);
 
-                DrawEdge(start, end, cost);
+                    DrawEdge(start, end, cost);
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Could not read the graph!\nMake sure the file follows the format rules!", "Invalid opperation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
             _graph.CurrentVertexId = _graph.AdjacencyList.Keys.Count;
         }
