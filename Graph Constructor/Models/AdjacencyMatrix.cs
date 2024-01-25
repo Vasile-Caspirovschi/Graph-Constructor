@@ -26,6 +26,22 @@ namespace Graph_Constructor.Models
             Add(temp);
             ValidateMainDiagonal();
         }
+
+        public void Initialize(int numberOfVertices)
+        {
+            for (int i = 0; i < numberOfVertices; i++)
+            {
+                var row = new ObservableCollection<MatrixCellValue>();
+                for (int j = 0; j < numberOfVertices; j++)
+                {
+                    row.Add(new MatrixCellValue(GraphType == GraphType.Weighted ? int.MaxValue : 0, new string($"{i + 1} {j + 1}"), _graphType));
+                }
+                Add(row);
+            }
+            ValidateMainDiagonal();
+        }
+
+
         void ValidateMainDiagonal()
         {
             for (int i = 0; i < Count; i++)

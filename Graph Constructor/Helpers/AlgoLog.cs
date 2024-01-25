@@ -8,8 +8,17 @@ namespace Graph_Constructor.Helpers
 {
     public class AlgoLog
     {
+        private string _detail;
+
         public string Title { get; set; }
-        public string Detail { get; set; }
+        public string Detail
+        {
+            get
+            {
+                return _detail.TrimEnd(Environment.NewLine.ToCharArray());
+            }
+            set => _detail = value;
+        }
 
         public AlgoLog(string title, List<int> vertices)
         {
@@ -35,7 +44,7 @@ namespace Graph_Constructor.Helpers
             Detail += string.Join("→", vertices);
             Detail += Environment.NewLine;
         }
-        public void AddMoreDetails(List<int> vertices , string details)
+        public void AddMoreDetails(List<int> vertices, string details)
         {
             Detail += string.Join("→", vertices);
             Detail += " " + details;
@@ -50,7 +59,7 @@ namespace Graph_Constructor.Helpers
 
         public override string ToString()
         {
-            return $"{Title}{Detail}\n";
+            return $"{Title}\n{Detail}";
         }
 
         public TextBlock GetLog()
@@ -58,7 +67,7 @@ namespace Graph_Constructor.Helpers
             var textBlock = new TextBlock
             {
                 FontSize = 15,
-                Margin = new System.Windows.Thickness(0, -5, 0, 0),
+                Margin = new System.Windows.Thickness(5, 5, 0, 0),
                 FontFamily = new FontFamily("Consolas"),
                 Text = ToString()
             };

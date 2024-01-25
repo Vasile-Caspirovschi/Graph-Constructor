@@ -31,6 +31,7 @@ namespace Graph_Constructor
 
         private bool _isSpaceKeyDown;
         private bool _isZoomModeChanged;
+        private bool _isReadFromFile;
         private ZoomPanel.ZoomModeType _savedZoomMode;
 
         private int _prevValue;
@@ -396,14 +397,19 @@ namespace Graph_Constructor
                 if (!DrawingHelpers.CheckForOppositeEdge(DrawingArea, _previousSelectedVertex, _currentSelectedVertex))
                 {
                     _graph.AddEdge(start, end);
-                    Matrix.AddEdge(Vertices, start, end);
+                    if (_isReadFromFile)
+                        Matrix[start.Id - 1][end.Id - 1].Value = cost;
+                    else
+                        Matrix.AddEdge(Vertices, start, end);
                     if (GraphType.Weighted == _graph.GetGraphType)
                     {
-                        DrawingHelpers.DrawWeightedEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, Matrix[Vertices.IndexOf(start)][Vertices.IndexOf(end)].Value.ToString());
+                        DrawingHelpers.DrawWeightedEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, cost.ToString());
                     }
                     else
                     {
-                        if (GraphType.Undirected == _graph.GetGraphType)
+                        if (GraphType.Undirected == _graph.GetGraphType && _isReadFromFile)
+                            Matrix[start.Id - 1][end.Id - 1].Value = cost;
+                        else
                             Matrix.AddEdge(Vertices, end, start);
                         DrawingHelpers.DrawEdgeOnCanvas(DrawingArea, _previousSelectedVertex, _currentSelectedVertex, _graph.GetGraphType);
                     }
@@ -422,7 +428,8 @@ namespace Graph_Constructor
 
             _graph.AddVertex(vertex);
             Vertices.Add(vertex);
-            Matrix.AddVertex(Vertices.Count);
+            if (!_isReadFromFile)
+                Matrix.AddVertex(Vertices.Count);
 
             var temp = new ObservableCollection<MatrixCellValue>
             {
@@ -723,6 +730,7 @@ namespace Graph_Constructor
 
         private void ReadGraph_Click(object sender, RoutedEventArgs e)
         {
+            _isReadFromFile = true;
             ClearCanvas();
             OpenFileDialog openFileDialog = new();
             openFileDialog.Filter = "Text file (*.txt)|*.txt";
@@ -730,10 +738,10 @@ namespace Graph_Constructor
             if (openFileDialog.ShowDialog() == false)
                 return;
             var fileContent = File.ReadAllLines(openFileDialog.FileName);
-
-            var graphType = (GraphType)Enum.Parse(typeof(GraphType), fileContent[0]);
+            var config = fileContent[0].Split(' ', ',', ';');
+            var graphType = (GraphType)Enum.Parse(typeof(GraphType), config[0]);
             InitializeNewGraph(graphType);
-
+            Matrix.Initialize(int.Parse(config[1]));
             for (int i = 1; i < fileContent.Length; i++)
             {
                 var data = fileContent[i].Split(' ', ',', ';');

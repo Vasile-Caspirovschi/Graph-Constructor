@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Graph_Constructor.Helpers
+namespace Graph_Constructor.Comparers
 {
     public class ListEqualityComparer<T> : IEqualityComparer<List<T>>
     {

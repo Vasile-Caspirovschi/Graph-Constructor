@@ -71,7 +71,7 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgoLog GetResults()
         {
-            return new AlgoLog($"DFS from {start.Id}\n", Path);
+            return new AlgoLog($"DFS from {start.Id}", Path);
         }
 
         public override void BindViewProperties(params Control[] controls)

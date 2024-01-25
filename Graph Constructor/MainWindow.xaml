@@ -6,11 +6,19 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:ab2d="clr-namespace:Ab2d.Controls;assembly=Ab2d.Controls.ZoomPanel"
         xmlns:converters="clr-namespace:Graph_Constructor.Converters"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
         Title="Graph Constructor" Height="750" KeyDown="DrawingArea_KeyDown" MinHeight="400" Background="#ecf5f9" MinWidth="700" Width="1200">
     <Window.Resources>
         <converters:MatrixCellValidator x:Key="MatrixCellValidator"/>
         <converters:MultiBoolOrConverter x:Key="MultiBoolOrConverter"/>
+
+        <CollectionViewSource Source="{Binding Vertices}" x:Key="VerticesList">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="Id" Direction="Ascending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+
         <DataTemplate x:Key="MatrixCell">
             <TextBox x:Name="Cell" Tag="{Binding CellId}" 
                      PreviewTextInput="Cell_PreviewTextInput" 
@@ -273,16 +281,16 @@
             <Rectangle RadiusX="3" RadiusY="3" Fill="#AAFFFFFF" Stroke="LightGray" StrokeThickness="2"/>
             <StackPanel Orientation="Vertical" Margin="5">
                 <TextBlock FontWeight="Bold" Margin="0 0 0 2">File format for reading graph:</TextBlock>
-                <TextBlock >First line specify graph type:<LineBreak />
-                    <Bold FontSize="10">Weighted, Undirected, Directed </Bold>
+                <TextBlock TextWrapping="Wrap">First line specify graph type and number of vertices:<LineBreak />
+                    <Bold FontSize="10">Weighted or Undirected or Directed,n</Bold>
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap">Starting from second line list the edges</TextBlock>
                 <TextBlock TextWrapping="Wrap">Each edge from a new line</TextBlock>
                 <TextBlock TextWrapping="Wrap">E.g:</TextBlock>
                 <TextBlock TextWrapping="Wrap">1 2 4</TextBlock>
                 <TextBlock TextWrapping="Wrap">1,2,4</TextBlock>
-                <TextBlock TextWrapping="Wrap">Delimit the numbers with: " ", "," or ";"</TextBlock>
                 <TextBlock TextWrapping="Wrap">In case of a weighted graph the third number of the edge represents the weight/cost. <LineBreak/>In other cases specify only the start vertex and end. (1,2)</TextBlock>
+                <TextBlock TextWrapping="Wrap">Delimitors: " ", "," or ";"</TextBlock>
             </StackPanel>
         </Grid>
         <Grid Margin="20 0 10 0" Grid.Row="1">
@@ -390,7 +398,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <ItemsControl Grid.Column="1" x:Name="MatrixHorizontalHeader" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource HorizontalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
+                        <ItemsControl Grid.Column="1" x:Name="MatrixHorizontalHeader" ItemsSource="{Binding Source={StaticResource VerticesList}}" ItemsPanel="{DynamicResource HorizontalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                         <ItemsControl Grid.Row="1" Grid.Column="1" x:Name="AdjacencyMatrix" ItemsSource="{Binding Matrix}" ItemTemplate="{DynamicResource Matrix}"/>
                         <ItemsControl Grid.Row="1" x:Name="MatrixVerticalHeader" Margin="0 0 5 0" ItemsSource="{Binding Vertices}" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource HeaderCell}"/>
                         <ItemsControl Grid.Row="2" x:Name="BellmanResultsVerticalHeader" Margin="0 0 5 0" ItemsPanel="{DynamicResource VerticalHeader}" ItemTemplate="{DynamicResource BellmanHeaderCell}"/>

@@ -181,7 +181,7 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgoLog GetResults()
         {
-            var title = $"The min path length from {start.Id} to {target!.Id} is {PathLength}\n";
+            var title = $"The min path length from {start.Id} to {target!.Id} is {PathLength}";
             var details = "All paths are:\n";
             AlgoLog log = new AlgoLog(title, details);
             Paths.ForEach(path => log.AddMoreDetails(path.Select(vertex => vertex.Id).ToList()));

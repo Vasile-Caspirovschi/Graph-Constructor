@@ -1,4 +1,5 @@
-﻿using Graph_Constructor.Enums;
+﻿using Graph_Constructor.Comparers;
+using Graph_Constructor.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Graph_Constructor.Models
         private GraphType _type;
         public Graph(GraphType type)
         {
-            _adjacencyList = new Dictionary<Vertex, List<Edge>>(); ;
+            _adjacencyList = new Dictionary<Vertex, List<Edge>>();
             _type = type;
         }
 

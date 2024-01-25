@@ -129,8 +129,8 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgoLog GetResults()
         {
-            var title = $"The max flow {start.Id} to {target!.Id} is {MaxFlow}\n";
-            var details = $"All steps are below:\n";
+            var title = $"The max flow {start.Id} to {target!.Id} is {MaxFlow}";
+            var details = $"All steps are below:";
             AlgoLog log = new AlgoLog(title, details);
 
             int index = 0;
