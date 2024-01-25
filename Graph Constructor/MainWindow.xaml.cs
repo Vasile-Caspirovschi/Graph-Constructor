@@ -46,9 +46,10 @@ namespace Graph_Constructor
         private bool _wasAlgoRunned;
         private AlgorithmSteps _algorithmSteps = null!;
         private AdjacencyMatrix _matrix = null!;
+        private ObservableCollection<Vertex> _vertices = null!;
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        public ObservableCollection<Vertex> Vertices { get; set; } = new();
+        public ObservableCollection<Vertex> Vertices { get => _vertices; set { _vertices = value; OnPropertyChanged("Vertices"); } }
         public ObservableCollection<ObservableCollection<MatrixCellValue>> AdjList { get; set; } = new();
         public AdjacencyMatrix Matrix { get => _matrix; set { _matrix = value; OnPropertyChanged("Matrix"); } }
         public bool IsWeightedGraph
@@ -331,24 +332,19 @@ namespace Graph_Constructor
                 Vertex vertexToRemove = _graph.GetVertexById(int.Parse(DrawingHelpers.GetTextFromVertex(_currentSelectedVertex)));
                 _graph.RemoveVertex(vertexToRemove);
                 Matrix.RemoveVertex(vertexToRemove);
-
-                //bad code
-                Vertices.Clear();
-                List<Vertex> updatedVertices = _graph.GetAllVertices().OrderBy(vertex => vertex.Id).ToList();
-                foreach (var item in updatedVertices)
-                    Vertices.Add(item);
+                Vertices = new ObservableCollection<Vertex>(_graph.GetAllVertices());
 
                 AdjList.Clear();
                 foreach (var vertex in Vertices)
                 {
-                    var temp = new ObservableCollection<MatrixCellValue>
+                    var row = new ObservableCollection<MatrixCellValue>
                     {
                         new MatrixCellValue(0)
                     };
                     if (_graph.AdjacencyList[vertex].Count != 0)
                         foreach (var edge in _graph.AdjacencyList[vertex])
-                            temp.Insert(0, new MatrixCellValue(edge.To.Id));
-                    AdjList.Add(temp);
+                            row.Insert(0, new MatrixCellValue(edge.To.Id));
+                    AdjList.Add(row);
                 }
 
                 DrawingArea.Children.Remove(_currentSelectedVertex);
@@ -562,6 +558,7 @@ namespace Graph_Constructor
             IsWeightedGraph = GraphType.Weighted == graphType;
             IsUndirectedGraph = GraphType.Undirected == graphType;
             Matrix = new AdjacencyMatrix(graphType);
+            Vertices = new ObservableCollection<Vertex>();
 
             GraphTypePopup.Visibility = Visibility.Collapsed;
             GraphTypePopupBlurEffect.Effect = null;

@@ -42,7 +42,7 @@ namespace Graph_Constructor.Models
             List<Edge> edgesToRemove = new List<Edge>();
             foreach (var vert in AdjacencyList)
                 foreach (var edge in vert.Value)
-                    if (edge.To == vertex)
+                    if (edge.To.Id == vertex.Id)
                         edgesToRemove.Add(edge);
 
             foreach (var edge in edgesToRemove)
@@ -52,20 +52,14 @@ namespace Graph_Constructor.Models
 
         private void UpdateVertexIdAfterRemoving(Vertex vertex)
         {
-            for (int i = vertex.Id; i < _nextVertexId; i++)
+            _adjacencyList.Remove(_adjacencyList.Keys.Single(v => v.Id == vertex.Id));
+            foreach (var key in _adjacencyList.Keys)
             {
-                var current = _adjacencyList.Keys.FirstOrDefault(v => v.Id == i);
-                var next = _adjacencyList.Keys.FirstOrDefault(v => v.Id == i + 1);
-                current.Location = next.Location;
-                _adjacencyList[current] = _adjacencyList[next];
-                foreach (var edge in _adjacencyList[next])
-                {
-                    edge.From.Id = current.Id;
-                    edge.To.Id = next.Id;
-                }
+                if (key.Id > vertex.Id)
+                    key.Id -= 1;
             }
-            _adjacencyList.Remove(_adjacencyList.Keys.FirstOrDefault(v => v.Id == _nextVertexId));
-            _nextVertexId -= 1;
+
+            CurrentVertexId -= 1;
         }
 
         private void Validate(Func<bool> condition)
