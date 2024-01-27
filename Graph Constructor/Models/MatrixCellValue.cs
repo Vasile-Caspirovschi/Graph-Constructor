@@ -14,6 +14,7 @@ namespace Graph_Constructor.Models
         public MatrixCellValue(int value)
         {
             _value = value;
+            GraphType = GraphType.Weighted;
         }
         public MatrixCellValue(int value, string cellId, GraphType graphType)
         {

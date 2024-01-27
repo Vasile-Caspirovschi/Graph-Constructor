@@ -35,6 +35,7 @@ namespace Graph_Constructor.Algorithms
                 step.AddMarkedElement(edge, Colors.DefaultEdgeColor);
             }
             await DetermineMaxFlow();
+            DrawingHelpers.ClearCanvasFromAnimationEffects(drawingArea);
         }
 
         private async Task DetermineMaxFlow()

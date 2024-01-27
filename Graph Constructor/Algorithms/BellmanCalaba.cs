@@ -103,10 +103,10 @@ namespace Graph_Constructor.Algorithms
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.VisitedEdge);
                     DrawingHelpers.MarkVertex(drawingArea, end, Colors.VisitedVertex);
-                    Steps.Add(new AlgorithmStep(DrawingHelpers.ClearCanvasFromAnimationEffects)
-                        .AddMarkedElement(start, Colors.DoneVertex)
-                        .AddMarkedElement(edge, Colors.VisitedEdge)
-                        .AddMarkedElement(end, Colors.VisitedVertex));
+                    //Steps.Add(new AlgorithmStep(DrawingHelpers.ClearCanvasFromAnimationEffects)
+                    //    .AddMarkedElement(start, Colors.DoneVertex)
+                    //    .AddMarkedElement(edge, Colors.VisitedEdge)
+                    //    .AddMarkedElement(end, Colors.VisitedVertex));
                     await Task.Delay(SetExecutionDelay((int)Delay.Medium));
                     if (edge != null)
                         DrawingHelpers.MarkEdge(drawingArea, edge, Colors.DefaultEdgeColor);
@@ -182,7 +182,7 @@ namespace Graph_Constructor.Algorithms
         public override AlgoLog GetResults()
         {
             var title = $"The min path length from {start.Id} to {target!.Id} is {PathLength}";
-            var details = "All paths are:\n";
+            var details = "All paths are:";
             AlgoLog log = new AlgoLog(title, details);
             Paths.ForEach(path => log.AddMoreDetails(path.Select(vertex => vertex.Id).ToList()));
             return log;
@@ -196,7 +196,7 @@ namespace Graph_Constructor.Algorithms
 
         public override AlgorithmSteps GetSolvingSteps()
         {
-            throw new System.NotImplementedException();
+            return Steps;
         }
     }
 }

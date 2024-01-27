@@ -92,7 +92,14 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBox x:Name="BellmanResultCell" IsReadOnly="True" FontFamily="Arial" FontSize="15" Text="{Binding Value, Converter = {StaticResource MatrixCellValidator}, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextAlignment="Center" Margin="1" Height="25.3" Width="25.3"/>
+                        <TextBox x:Name="BellmanResultCell" IsReadOnly="True" FontFamily="Arial" FontSize="15"  VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextAlignment="Center" Margin="1" Height="25.3" Width="25.3">
+                            <TextBox.Text>
+                                <MultiBinding Converter="{StaticResource MatrixCellValidator}">
+                                    <Binding Path="Value" Mode="TwoWay"/>
+                                    <Binding Path="GraphType" Mode="OneWay"/>
+                                </MultiBinding>
+                            </TextBox.Text>
+                        </TextBox>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -391,8 +398,8 @@
                     <Grid Margin="10" x:Name="WeightedMatrixParent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition/>
-                            <RowDefinition/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
